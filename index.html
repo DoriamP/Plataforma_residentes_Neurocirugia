@@ -1,0 +1,840 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard del Residente — Neurocirugía</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+</head>
+<body class="bg-slate-100 min-h-screen py-6 px-3">
+
+<div class="max-w-4xl mx-auto space-y-5">
+
+    <!-- CABECERA -->
+    <div class="bg-gradient-to-r from-indigo-900 to-blue-900 text-white rounded-2xl px-6 py-6 shadow-lg">
+        <h1 class="text-2xl font-black leading-tight">Dashboard del Residente</h1>
+        <p class="text-indigo-200 text-sm mt-1">Seguimiento académico — Neurocirugía</p>
+    </div>
+
+    <!-- TABS -->
+    <div class="flex gap-2 bg-white rounded-2xl p-1.5 shadow border border-slate-200">
+        <button id="tabNotas" onclick="cambiarTab('notas')"
+            class="flex-1 py-2.5 px-4 rounded-xl text-sm font-bold transition tab-activo">
+            📊 Notas Acumuladas
+        </button>
+        <button id="tabPendientes" onclick="cambiarTab('pendientes')"
+            class="flex-1 py-2.5 px-4 rounded-xl text-sm font-bold transition tab-inactivo">
+            📋 Actividades Pendientes
+        </button>
+    </div>
+
+    <!-- TAB 1: NOTAS ACUMULADAS -->
+    <div id="panelNotas" class="space-y-5">
+
+        <!-- Filtros notas -->
+        <div class="bg-white rounded-2xl shadow border border-slate-200 p-5">
+            <h2 class="text-xs font-bold text-slate-500 uppercase tracking-wider mb-4">Seleccionar residente y módulo</h2>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                    <label for="selResidente" class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Residente</label>
+                    <select id="selResidente" class="w-full px-3 py-2.5 bg-white border border-slate-300 rounded-xl text-sm focus:ring-2 focus:ring-indigo-500 outline-none appearance-none">
+                        <option value="">— Seleccione —</option>
+                        <optgroup label="I Año"><option>María Teresa Quintana Duarte</option><option>Kevin Yassir Bobb García</option></optgroup>
+                        <optgroup label="II Año"><option>Axly Ivania Olivas Jiménez</option><option>Fernando Antonio De Jesús Cuadra Jiménez</option></optgroup>
+                        <optgroup label="III Año"><option>Vivian Iveth Díaz</option><option>José Luis Cerrato Lemus</option></optgroup>
+                        <optgroup label="IV Año"><option>Angel Benigno Rayo Bravo</option><option>Lagree Guzman Reynoso</option><option>Liuska Ninoska Blandón Cortés</option></optgroup>
+                        <optgroup label="V Año"><option>Martha Elena Abarca Morales</option><option>Jissella Joammet Membreño Vivas</option></optgroup>
+                    </select>
+                </div>
+                <div>
+                    <label for="selModulo" class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Módulo</label>
+                    <select id="selModulo" class="w-full px-3 py-2.5 bg-white border border-slate-300 rounded-xl text-sm focus:ring-2 focus:ring-indigo-500 outline-none appearance-none">
+                        <option value="">— Todos —</option>
+                        <option value="I">Módulo I</option><option value="II">Módulo II</option><option value="III">Módulo III</option>
+                        <option value="IV">Módulo IV</option><option value="V">Módulo V</option><option value="VI">Módulo VI</option>
+                    </select>
+                </div>
+            </div>
+            <button id="btnCargar" onclick="cargarNotas()"
+                class="mt-4 w-full sm:w-auto px-6 py-2.5 bg-indigo-700 hover:bg-indigo-800 active:scale-[0.98] text-white font-bold rounded-xl shadow text-sm transition">
+                Ver Notas
+            </button>
+        </div>
+
+        <div id="msgNotasEstado" class="hidden bg-white rounded-2xl shadow border border-slate-200 p-8 text-center">
+            <p id="msgNotasTexto" class="text-slate-500 text-sm"></p>
+        </div>
+
+        <div id="secNotas" class="hidden space-y-5">
+            <div class="grid grid-cols-2 sm:grid-cols-4 gap-3" id="kpiCards"></div>
+
+            <div class="bg-white rounded-2xl shadow border border-slate-200 overflow-hidden">
+                <div class="bg-slate-50 px-5 py-3 border-b border-slate-200 flex items-center justify-between">
+                    <h2 class="font-bold text-slate-800 text-sm">Notas por Componente</h2>
+                    <span class="text-xs text-slate-400">Distribución ponderada</span>
+                </div>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-sm">
+                        <thead>
+                            <tr class="bg-slate-50 text-left text-xs font-bold text-slate-500 uppercase tracking-wider">
+                                <th class="px-4 py-3">Componente</th>
+                                <th class="px-4 py-3 text-center">Módulo(s)</th>
+                                <th class="px-4 py-3 text-center">Eval.</th>
+                                <th class="px-4 py-3 text-center">Promedio</th>
+                                <th class="px-4 py-3 text-center">Peso</th>
+                                <th class="px-4 py-3 text-center">Pond.</th>
+                                <th class="px-4 py-3 min-w-[90px]">Progreso</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tablaBody" class="divide-y divide-slate-100"></tbody>
+                        <tfoot id="tablaFoot" class="bg-slate-50 font-bold text-slate-800"></tfoot>
+                    </table>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
+                <div class="bg-white rounded-2xl shadow border border-slate-200 p-5">
+                    <h3 class="font-bold text-slate-800 text-sm mb-4">Promedio por Componente</h3>
+                    <canvas id="chartBarras" height="240"></canvas>
+                </div>
+                <div class="bg-white rounded-2xl shadow border border-slate-200 p-5">
+                    <h3 class="font-bold text-slate-800 text-sm mb-4">Perfil del Residente</h3>
+                    <canvas id="chartRadar" height="240"></canvas>
+                </div>
+            </div>
+
+            <!-- SECCIÓN: DESGLOSE EVALUACIÓN DIARIA CONSOLIDADA ANÓNIMA CON COMENTARIOS -->
+            <div class="bg-white rounded-2xl shadow border border-slate-200 overflow-hidden">
+                <div class="bg-gradient-to-r from-slate-900 to-indigo-950 px-5 py-4 flex items-center justify-between">
+                    <div class="flex items-center gap-2 text-white">
+                        <svg class="w-5 h-5 text-indigo-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"></path></svg>
+                        <h3 class="font-bold text-sm">Análisis de Desempeño Diario Consolidado</h3>
+                    </div>
+                    <span class="text-xs text-indigo-200 bg-indigo-900/50 px-2.5 py-1 rounded-full border border-indigo-800 font-bold tracking-wide">Métricas Anónimas</span>
+                </div>
+                <div class="p-5 space-y-3" id="contenedorConsolidadoDiario"></div>
+            </div>
+
+            <div class="bg-white rounded-2xl shadow border border-slate-200 p-5">
+                <h3 class="font-bold text-slate-800 text-sm mb-4">Nota Estimada por Módulo</h3>
+                <div id="barrasModulo" class="space-y-3"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- TAB 2: ACTIVIDADES PENDIENTES -->
+    <div id="panelPendientes" class="hidden space-y-5">
+        <div class="bg-white rounded-2xl shadow border border-slate-200 p-5">
+            <h2 class="text-xs font-bold text-slate-500 uppercase tracking-wider mb-4">Filtrar actividades pendientes</h2>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                    <label for="selModoVista" class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Vista</label>
+                    <select id="selModoVista" onchange="actualizarFiltrosPendientes()"
+                        class="w-full px-3 py-2.5 bg-white border border-slate-300 rounded-xl text-sm focus:ring-2 focus:ring-rose-500 outline-none appearance-none">
+                        <option value="residente">Por residente individual</option>
+                        <option value="anio">Por año de residencia</option>
+                    </select>
+                </div>
+                <div id="contenedorFiltroResidente">
+                    <label for="selPendResidente" class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Residente</label>
+                    <select id="selPendResidente" class="w-full px-3 py-2.5 bg-white border border-slate-300 rounded-xl text-sm focus:ring-2 focus:ring-rose-500 outline-none appearance-none">
+                        <option value="">— Seleccione —</option>
+                        <optgroup label="I Año"><option>María Teresa Quintana Duarte</option><option>Kevin Yassir Bobb García</option></optgroup>
+                        <optgroup label="II Año"><option>Axly Ivania Olivas Jiménez</option><option>Fernando Antonio De Jesús Cuadra Jiménez</option></optgroup>
+                        <optgroup label="III Año"><option>Vivian Iveth Díaz</option><option>José Luis Cerrato Lemus</option></optgroup>
+                        <optgroup label="IV Año"><option>Angel Benigno Rayo Bravo</option><option>Lagree Guzman Reynoso</option><option>Liuska Ninoska Blandón Cortés</option></optgroup>
+                        <optgroup label="V Año"><option>Martha Elena Abarca Morales</option><option>Jissella Joammet Membreño Vivas</option></optgroup>
+                    </select>
+                </div>
+                <div id="contenedorFiltroAnio" class="hidden">
+                    <label for="selPendAnio" class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Año de Residencia</label>
+                    <select id="selPendAnio" class="w-full px-3 py-2.5 bg-white border border-slate-300 rounded-xl text-sm focus:ring-2 focus:ring-rose-500 outline-none appearance-none">
+                        <option value="I">I Año</option><option value="II">II Año</option><option value="III">III Año</option>
+                        <option value="IV">IV Año</option><option value="V">V Año</option>
+                    </select>
+                </div>
+            </div>
+            <button onclick="cargarPendientes()"
+                class="mt-4 w-full sm:w-auto px-6 py-2.5 bg-rose-700 hover:bg-rose-800 active:scale-[0.98] text-white font-bold rounded-xl shadow text-sm transition">
+                Ver Actividades Pendientes
+            </button>
+        </div>
+        <div id="msgPendEstado" class="hidden bg-white rounded-2xl shadow border border-slate-200 p-8 text-center">
+            <p id="msgPendTexto" class="text-slate-500 text-sm"></p>
+        </div>
+        <div id="secPendientes" class="hidden space-y-5"></div>
+    </div>
+
+</div>
+
+<style>
+.tab-activo   { background:#4338ca; color:#fff; }
+.tab-inactivo { background:transparent; color:#64748b; }
+.tab-inactivo:hover { background:#f1f5f9; color:#1e293b; }
+</style>
+
+<script>
+const URL_SCRIPT = "https://script.google.com/macros/s/AKfycbzwxFznLdmraLeYOP3VxEGm53p6MZLmYWt5AyjJ72j-vSUkhkTBDWprNCtK1yfm82m_/exec";
+
+const RESIDENTE_ANIO = {
+    "María Teresa Quintana Duarte": "I",    "Kevin Yassir Bobb García": "I",
+    "Axly Ivania Olivas Jiménez": "II",     "Fernando Antonio De Jesús Cuadra Jiménez": "II",
+    "Vivian Iveth Díaz": "III",              "José Luis Cerrato Lemus": "III",
+    "Angel Benigno Rayo Bravo": "IV",        "Lagree Guzman Reynoso": "IV",
+    "Liuska Ninoska Blandón Cortés": "IV",
+    "Martha Elena Abarca Morales": "V",      "Jissella Joammet Membreño Vivas": "V"
+};
+
+const ANIO_RESIDENTES = {
+    "I":   ["María Teresa Quintana Duarte", "Kevin Yassir Bobb García"],
+    "II":  ["Axly Ivania Olivas Jiménez", "Fernando Antonio De Jesús Cuadra Jiménez"],
+    "III": ["Vivian Iveth Díaz", "José Luis Cerrato Lemus"],
+    "IV":  ["Angel Benigno Rayo Bravo", "Lagree Guzman Reynoso", "Liuska Ninoska Blandón Cortés"],
+    "V":   ["Martha Elena Abarca Morales", "Jissella Joammet Membreño Vivas"]
+};
+
+const MODULOS_FECHAS = [
+    { modulo: "I",   inicio: "2026-05-01", fin: "2026-06-30" },
+    { modulo: "II",  inicio: "2026-07-01", fin: "2026-08-31" },
+    { modulo: "III", inicio: "2026-09-01", fin: "2026-10-31" },
+    { modulo: "IV",  inicio: "2026-11-01", fin: "2026-12-31" },
+    { modulo: "V",   inicio: "2027-01-01", fin: "2027-02-28" },
+    { modulo: "VI",  inicio: "2027-03-01", fin: "2027-04-30" },
+];
+
+const PESOS = {
+    "Clases Programadas":          { peso: 30, tipo: "Teórico" },
+    "Casos Clínicos y Artículos":  { peso: 20, tipo: "Teórico" },
+    "Sesiones Diarias":            { peso: 20, tipo: "Teórico" },
+    "Examen":                      { peso: 30, tipo: "Teórico" },
+    "Práctica Quirúrgica":         { peso: 100, tipo: "Práctico" },
+};
+
+const COLORES_COMP = {
+    "Clases Programadas":         "#6366f1",
+    "Casos Clínicos y Artículos": "#8b5cf6",
+    "Sesiones Diarias":           "#0ea5e9",
+    "Examen":                     "#f59e0b",
+    "Práctica Quirúrgica":        "#10b981",
+};
+
+const CLASES = [
+    { f:"25/05/2026", tema:"Presentación de caso clínico", anio:"I" },
+    { f:"01/06/2026", tema:"Instrumental quirúrgico en neurocirugía", anio:"I" },
+    { f:"08/06/2026", tema:"Revisión de un tema y artículos científicos", anio:"I" },
+    { f:"22/06/2026", tema:"Posiciones básicas operatorias en cirugía craneal y espinal", anio:"I" },
+    { f:"06/07/2026", tema:"Principios de craneotomía: topografía craneocerebral", anio:"I" },
+    { f:"13/07/2026", tema:"Revisión de un tema y artículos científicos", anio:"I" },
+    { f:"03/08/2026", tema:"Manejo inicial de trauma craneoencefálico del adulto", anio:"I" },
+    { f:"10/08/2026", tema:"Investigación clínica: el proceso y bases de la investigación", anio:"I" },
+    { f:"17/08/2026", tema:"Manejo inicial de trauma espinal", anio:"I" },
+    { f:"24/08/2026", tema:"Presentación de caso clínico", anio:"I" },
+    { f:"07/09/2026", tema:"Hidrocefalia", anio:"I" },
+    { f:"14/09/2026", tema:"Craneotomía frontotemporal pterional", anio:"I" },
+    { f:"21/09/2026", tema:"Manejo en emergencias de TCE pediátrico", anio:"I" },
+    { f:"05/10/2026", tema:"Presentación de caso clínico", anio:"I" },
+    { f:"26/10/2026", tema:"Investigación clínica: ética e investigación", anio:"I" },
+    { f:"02/11/2026", tema:"Nervios craneales I-II", anio:"I" },
+    { f:"09/11/2026", tema:"Nervios craneales III-IV-VI", anio:"I" },
+    { f:"16/11/2026", tema:"Nervios craneales V-VIII", anio:"I" },
+    { f:"23/11/2026", tema:"Nervios craneales IX-XII", anio:"I" },
+    { f:"01/12/2026", tema:"Revisión de un tema y artículos científicos", anio:"I" },
+    { f:"11/01/2027", tema:"Médula espinal (vías ascendentes)", anio:"I" },
+    { f:"18/01/2027", tema:"Médula espinal (vías descendentes)", anio:"I" },
+    { f:"25/01/2027", tema:"Presentación de caso clínico", anio:"I" },
+    { f:"01/02/2027", tema:"Presentación de caso clínico", anio:"I" },
+    { f:"08/02/2027", tema:"Irrigación del encéfalo y médula espinal", anio:"I" },
+    { f:"26/05/2026", tema:"Presentación de caso clínico", anio:"II" },
+    { f:"02/06/2026", tema:"Manejo en UCI del trauma craneoencefálico", anio:"II" },
+    { f:"09/06/2026", tema:"Manejo quirúrgico de TCE (parte 1)", anio:"II" },
+    { f:"16/06/2026", tema:"Investigación: clasificación de los tipos de estudio", anio:"II" },
+    { f:"23/06/2026", tema:"Manejo quirúrgico de TCE (parte 2)", anio:"II" },
+    { f:"07/07/2026", tema:"Revisión de un tema y artículos científicos", anio:"II" },
+    { f:"14/07/2026", tema:"Revisión de un tema y artículos científicos", anio:"II" },
+    { f:"21/07/2026", tema:"Manejo quirúrgico de TCE (parte 3)", anio:"II" },
+    { f:"28/07/2026", tema:"Investigación: ensayo clínico aleatorio", anio:"II" },
+    { f:"04/08/2026", tema:"Craniectomía descompresiva", anio:"II" },
+    { f:"01/09/2026", tema:"Trauma craneoencefálico leve", anio:"II" },
+    { f:"08/09/2026", tema:"Hematoma subdural crónico", anio:"II" },
+    { f:"15/09/2026", tema:"Fístula de LCR postraumática", anio:"II" },
+    { f:"06/10/2026", tema:"Presentación de caso clínico", anio:"II" },
+    { f:"13/10/2026", tema:"Presentación de caso clínico", anio:"II" },
+    { f:"20/10/2026", tema:"Evaluación y clasificación de inestabilidad espinal", anio:"II" },
+    { f:"03/11/2026", tema:"Lesiones craneocervicales", anio:"II" },
+    { f:"10/11/2026", tema:"Lesiones de C2", anio:"II" },
+    { f:"15/01/2027", tema:"Lesiones subaxiales cervicales", anio:"II" },
+    { f:"22/01/2027", tema:"Lesiones unión cervicotorácica", anio:"II" },
+    { f:"29/01/2027", tema:"Manejo médico de lesión medular", anio:"II" },
+    { f:"12/02/2027", tema:"Lesiones toracolumbares", anio:"II" },
+    { f:"19/02/2027", tema:"Revisión de un tema y artículos científicos", anio:"II" },
+    { f:"26/02/2027", tema:"Revisión de un tema y artículos científicos", anio:"II" },
+    { f:"27/05/2026", tema:"Presentación de caso clínico", anio:"III" },
+    { f:"03/06/2026", tema:"Hernia discal cervical", anio:"III" },
+    { f:"10/06/2026", tema:"Hernia discal dorsal", anio:"III" },
+    { f:"17/06/2026", tema:"Hernia discal lumbar", anio:"III" },
+    { f:"24/06/2026", tema:"Estenosis cervical, dorsal y lumbar", anio:"III" },
+    { f:"01/07/2026", tema:"Espondilolistesis degenerativa lumbar", anio:"III" },
+    { f:"08/07/2026", tema:"Mielopatía cervical degenerativa", anio:"III" },
+    { f:"15/07/2026", tema:"Revisión de un tema y artículos científicos", anio:"III" },
+    { f:"22/07/2026", tema:"Instrumentación posterior torácica y lumbar", anio:"III" },
+    { f:"05/08/2026", tema:"Revisión de un tema y artículos científicos", anio:"III" },
+    { f:"02/09/2026", tema:"Investigación: estudio de cohortes", anio:"III" },
+    { f:"09/09/2026", tema:"Instrumentación cervical anterior", anio:"III" },
+    { f:"16/09/2026", tema:"PLIF, TLIF y ALIF", anio:"III" },
+    { f:"23/09/2026", tema:"Presentación de caso clínico", anio:"III" },
+    { f:"07/10/2026", tema:"Presentación de caso clínico", anio:"III" },
+    { f:"14/10/2026", tema:"Clasificación de deformidad espinal", anio:"III" },
+    { f:"21/10/2026", tema:"Evaluación de alineación espinal", anio:"III" },
+    { f:"28/10/2026", tema:"Evaluación y tratamiento de deformidad cervical", anio:"III" },
+    { f:"04/11/2026", tema:"Evaluación y tratamiento de la escoliosis del adulto", anio:"III" },
+    { f:"13/01/2027", tema:"Tumores benignos del esqueleto axial", anio:"III" },
+    { f:"20/01/2027", tema:"Tumores malignos primarios del esqueleto axial", anio:"III" },
+    { f:"27/01/2027", tema:"Tumores benignos intradurales extramedulares", anio:"III" },
+    { f:"03/02/2027", tema:"Metástasis espinal", anio:"III" },
+    { f:"10/02/2027", tema:"Tumores malignos primarios", anio:"III" },
+    { f:"17/02/2027", tema:"Revisión de un tema y artículos científicos", anio:"III" },
+    { f:"24/02/2027", tema:"Revisión de un tema y artículos científicos", anio:"III" },
+    { f:"28/05/2026", tema:"Presentación de caso clínico", anio:"IV" },
+    { f:"04/06/2026", tema:"Gliomas de bajo grado", anio:"IV" },
+    { f:"11/06/2026", tema:"Gliomas malignos", anio:"IV" },
+    { f:"18/06/2026", tema:"Revisión de un tema y artículos científicos", anio:"IV" },
+    { f:"25/06/2026", tema:"Meduloblastomas en niños y adultos", anio:"IV" },
+    { f:"02/07/2026", tema:"Ependimomas intracraneales en niños y adultos", anio:"IV" },
+    { f:"09/07/2026", tema:"Metástasis cerebral", anio:"IV" },
+    { f:"16/07/2026", tema:"Meningiomas (no base de cráneo)", anio:"IV" },
+    { f:"23/07/2026", tema:"Revisión de un tema y artículos científicos", anio:"IV" },
+    { f:"30/07/2026", tema:"Revisión de un tema y artículos científicos", anio:"IV" },
+    { f:"20/08/2026", tema:"Investigación: estudios de casos control", anio:"IV" },
+    { f:"27/08/2026", tema:"Investigación: estudios descriptivos", anio:"IV" },
+    { f:"03/09/2026", tema:"Schwannomas vestibulares", anio:"IV" },
+    { f:"10/09/2026", tema:"Meningioma de base de cráneo", anio:"IV" },
+    { f:"17/09/2026", tema:"Tumores de hipófisis", anio:"IV" },
+    { f:"24/09/2026", tema:"Presentación de caso clínico", anio:"IV" },
+    { f:"01/10/2026", tema:"Presentación de caso clínico", anio:"IV" },
+    { f:"08/10/2026", tema:"Presentación de caso clínico", anio:"IV" },
+    { f:"15/10/2026", tema:"Investigación: protocolo y objetivos del estudio", anio:"IV" },
+    { f:"22/10/2026", tema:"Cordomas y condrosarcomas", anio:"IV" },
+    { f:"05/11/2026", tema:"Craneofaringiomas", anio:"IV" },
+    { f:"14/01/2027", tema:"Evaluación de pacientes para cirugía de epilepsia", anio:"IV" },
+    { f:"21/01/2027", tema:"Lobectomía temporal anteromedial", anio:"IV" },
+    { f:"28/01/2027", tema:"Resecciones extratemporales en cirugía de epilepsia", anio:"IV" },
+    { f:"04/02/2027", tema:"Estimulación eléctrica para epilepsia (DBS)", anio:"IV" },
+    { f:"11/02/2027", tema:"Revisión de un tema y artículos científicos", anio:"IV" },
+    { f:"18/02/2027", tema:"Cirugía para enfermedad de Parkinson", anio:"IV" },
+    { f:"25/02/2027", tema:"Revisión de un tema y artículos científicos", anio:"IV" },
+    { f:"04/03/2027", tema:"Revisión de un tema y artículos científicos", anio:"IV" },
+    { f:"29/05/2026", tema:"Presentación de caso clínico", anio:"V" },
+    { f:"12/06/2026", tema:"Manejo microquirúrgico y endovascular de MAV", anio:"V" },
+    { f:"19/06/2026", tema:"Investigación: variable de respuesta", anio:"V" },
+    { f:"26/06/2026", tema:"Manejo microquirúrgico de aneurismas de carótida interna", anio:"V" },
+    { f:"02/07/2026", tema:"Revisión de un tema y artículos científicos", anio:"V" },
+    { f:"09/07/2026", tema:"Investigación: población de estudio", anio:"V" },
+    { f:"17/07/2026", tema:"Revisión de un tema y artículos científicos", anio:"V" },
+    { f:"24/07/2026", tema:"Manejo microquirúrgico de aneurismas de arteria comunicante anterior", anio:"V" },
+    { f:"07/08/2026", tema:"Manejo microquirúrgico de aneurismas de arteria cerebral media", anio:"V" },
+    { f:"04/09/2026", tema:"Endoscopia ventricular", anio:"V" },
+    { f:"18/09/2026", tema:"Craneosinostosis no sindrómica", anio:"V" },
+    { f:"25/09/2026", tema:"Presentación de caso clínico", anio:"V" },
+    { f:"02/10/2026", tema:"Craneosinostosis sindrómica", anio:"V" },
+    { f:"09/10/2026", tema:"Disrafismo espinal", anio:"V" },
+    { f:"16/10/2026", tema:"Revisión de un tema y artículos científicos", anio:"V" },
+    { f:"04/12/2026", tema:"Anatomía de base de cráneo anterior y media (Rhoton)", anio:"V" },
+    { f:"08/01/2027", tema:"Anatomía del ángulo pontocerebeloso (Rhoton)", anio:"V" },
+];
+
+function parseFecha(str) {
+    if (!str) return null;
+    str = String(str).trim();
+    if (str.includes('/')) { const [d,m,y]=str.split('/'); return new Date(+y,+m-1,+d); }
+    return new Date(str);
+}
+
+function getModulo(fechaStr) {
+    const d = parseFecha(fechaStr);
+    if (!d) return null;
+    for (const m of MODULOS_FECHAS) {
+        if (d >= new Date(m.inicio) && d <= new Date(m.fin)) return m.modulo;
+    }
+    return null;
+}
+
+function getPct(row) {
+    let v = parseFloat((row.porcentaje||"0").toString().replace('%','').trim())||0;
+    if (v>0&&v<=1) v=v*100;
+    return Math.min(Math.round(v),100);
+}
+
+function colorBarra(pct) {
+    if (pct>=80) return "bg-emerald-500";
+    if (pct>=70) return "bg-blue-500";
+    if (pct>=60) return "bg-amber-400";
+    return "bg-red-400";
+}
+
+function badgeColor(pct) {
+    if (pct>=80) return "bg-emerald-100 text-emerald-800";
+    if (pct>=70) return "bg-blue-100 text-blue-800";
+    if (pct>=60) return "bg-amber-100 text-amber-800";
+    return "bg-red-100 text-red-700";
+}
+
+function getTipoClase(tema) {
+    const t = tema.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'');
+    if (t.includes('presentacion de caso') || t.includes('presentación de caso')) return 'Casos Clínicos y Artículos';
+    if (t.includes('revision') && t.includes('articulo')) return 'Casos Clínicos y Artículos';
+    return 'Clases Programadas';
+}
+
+const STOPWORDS = new Set(['de','la','el','en','y','a','un','una','los','las','del','al','por','con','para','que','se','su','lo','es','no','o','e','i','parte','sus','una','este']);
+function tokenizar(s) {
+    return s.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'').replace(/[()]/g,' ').split(/\W+/).filter(w=>w.length>2&&!STOPWORDS.has(w));
+}
+function hayCoincidencia(planTema, evalTema) {
+    if (!evalTema) return false;
+    const t1 = new Set(tokenizar(planTema));
+    return tokenizar(evalTema).some(w => t1.has(w));
+}
+
+let _datosCache = null;
+
+async function fetchEvaluaciones() {
+    if (_datosCache) return _datosCache;
+    const resp = await fetch(`${URL_SCRIPT}?action=getEvaluations`, { mode: 'cors' });
+    _datosCache = await resp.json();
+    return _datosCache;
+}
+
+function cambiarTab(tab) {
+    const esNotas = tab === 'notas';
+    document.getElementById('panelNotas').classList.toggle('hidden', !esNotas);
+    document.getElementById('panelPendientes').classList.toggle('hidden', esNotas);
+    document.getElementById('tabNotas').className = 'flex-1 py-2.5 px-4 rounded-xl text-sm font-bold transition ' + (esNotas ? 'tab-activo' : 'tab-inactivo');
+    document.getElementById('tabPendientes').className = 'flex-1 py-2.5 px-4 rounded-xl text-sm font-bold transition ' + (!esNotas ? 'tab-activo' : 'tab-inactivo');
+}
+
+function actualizarFiltrosPendientes() {
+    const modo = document.getElementById('selModoVista').value;
+    document.getElementById('contenedorFiltroResidente').classList.toggle('hidden', modo !== 'residente');
+    document.getElementById('contenedorFiltroAnio').classList.toggle('hidden', modo !== 'anio');
+}
+
+let chartBarrasInst = null, chartRadarInst = null;
+
+async function cargarNotas() {
+    const residente = document.getElementById('selResidente').value.trim();
+    const moduloFiltro = document.getElementById('selModulo').value.trim();
+    if (!residente) { mostrarMsgNotas("Por favor selecciona un residente."); return; }
+    mostrarMsgNotas("Cargando datos…");
+    document.getElementById('secNotas').classList.add('hidden');
+
+    let datos;
+    try { datos = await fetchEvaluaciones(); }
+    catch(e) { mostrarMsgNotas("⚠️ No se pudo conectar con Google Sheets."); return; }
+
+    if (!Array.isArray(datos)||datos.length===0) { mostrarMsgNotas("No hay evaluaciones registradas."); return; }
+
+    const filas = datos.filter(r=>(r.nombreResidente||r.residentName||r.residente||"").trim()===residente);
+    if (!filas.length) { mostrarMsgNotas(`Sin evaluaciones para ${residente}.`); return; }
+
+    const filasConMod = filas.map(r=>({...r, _modulo:getModulo(r.fecha)||"Sin módulo", _pct:getPct(r), _comp:(r.tipo_evaluacion||"").trim()}));
+    const filasFiltr = moduloFiltro ? filasConMod.filter(r=>r._modulo===moduloFiltro) : filasConMod;
+    if (!filasFiltr.length) { mostrarMsgNotas("No hay evaluaciones en el módulo seleccionado."); return; }
+
+    document.getElementById('msgNotasEstado').classList.add('hidden');
+    renderNotas(residente, filasFiltr);
+}
+
+function mostrarMsgNotas(txt) {
+    document.getElementById('msgNotasTexto').textContent = txt;
+    document.getElementById('msgNotasEstado').classList.remove('hidden');
+    document.getElementById('secNotas').classList.add('hidden');
+}
+
+function renderNotas(residente, filas) {
+    const porComp={};
+    filas.forEach(r=>{
+        const c=r._comp;
+        if(!porComp[c]) porComp[c]={sum:0,count:0,mods:new Set()};
+        porComp[c].sum+=r._pct; porComp[c].count++; porComp[c].mods.add(r._modulo);
+    });
+    const compData={};
+    Object.keys(porComp).forEach(c=>{ compData[c]={promedio:Math.round(porComp[c].sum/porComp[c].count),count:porComp[c].count,modulos:[...porComp[c].mods].join(', ')}; });
+
+    let sumPT=0,sumPP=0,sumWT=0,sumWP=0;
+    const filasTbl=[];
+    Object.keys(PESOS).forEach(comp=>{
+        const cfg=PESOS[comp]; const d=compData[comp]; if(!d) return;
+        const pond=Math.round(d.promedio*cfg.peso/100);
+        if(cfg.tipo==="Teórico"){sumWT+=cfg.peso;sumPT+=pond;}else{sumWP+=cfg.peso;sumPP+=pond;}
+        filasTbl.push({comp,tipo:cfg.tipo,peso:cfg.peso,promedio:d.promedio,count:d.count,pond,modulos:d.modulos});
+    });
+    const notaT=sumWT>0?Math.round(sumPT*100/sumWT):null;
+    const notaP=sumWP>0?Math.round(sumPP*100/sumWP):null;
+    const notaF=(notaT!==null&&notaP!==null)?Math.round((notaT+notaP)/2):(notaT??notaP??0);
+
+    document.getElementById('kpiCards').innerHTML=[
+        {label:"Evaluaciones",val:filas.length,color:"bg-indigo-50 text-indigo-700"},
+        {label:"Nota Teórica",val:notaT!==null?notaT+"%":"—",color:"bg-blue-50 text-blue-700"},
+        {label:"Nota Práctica",val:notaP!==null?notaP+"%":"—",color:"bg-emerald-50 text-emerald-700"},
+        {label:"Nota Final Est.",val:notaF+"%",color:notaF>=70?"bg-green-50 text-green-700":"bg-red-50 text-red-700"},
+    ].map(c=>`<div class="${c.color} rounded-2xl p-4 text-center border border-slate-200"><p class="text-2xl font-black">${c.val}</p><p class="text-xs font-bold mt-1 opacity-70 uppercase tracking-wide">${c.label}</p></div>`).join('');
+
+    document.getElementById('tablaBody').innerHTML=filasTbl.map(f=>`
+        <tr class="hover:bg-slate-50">
+            <td class="px-4 py-3"><span class="font-semibold text-slate-800">${f.comp}</span>
+                <span class="ml-2 text-xs px-2 py-0.5 rounded-full ${f.tipo==='Teórico'?'bg-blue-100 text-blue-700':'bg-emerald-100 text-emerald-700'}">${f.tipo}</span></td>
+            <td class="px-4 py-3 text-center text-xs text-slate-500">${f.modulos}</td>
+            <td class="px-4 py-3 text-center font-medium text-slate-600">${f.count}</td>
+            <td class="px-4 py-3 text-center font-bold text-slate-800">${f.promedio}%</td>
+            <td class="px-4 py-3 text-center text-slate-500 text-xs">${f.peso}%</td>
+            <td class="px-4 py-3 text-center"><span class="inline-block px-2 py-1 rounded-lg text-xs font-bold ${badgeColor(f.pond)}">${f.pond}%</span></td>
+            <td class="px-4 py-3"><div class="w-full bg-slate-200 rounded-full h-2"><div class="h-2 rounded-full ${colorBarra(f.promedio)}" style="width:${f.promedio}%"></div></div></td>
+        </tr>`).join('');
+
+    document.getElementById('tablaFoot').innerHTML=`
+        <tr class="border-t-2 border-slate-300">
+            <td colspan="5" class="px-4 py-3 text-right text-slate-600">Nota Teórica (pond.)</td>
+            <td class="px-4 py-3 text-center"><span class="inline-block px-2 py-1 rounded-lg text-xs font-bold ${notaT!==null?badgeColor(notaT):'bg-slate-100 text-slate-400'}">${notaT!==null?notaT+'%':'—'}</span></td><td></td></tr>
+        <tr><td colspan="5" class="px-4 py-3 text-right text-slate-600">Nota Práctica (pond.)</td>
+            <td class="px-4 py-3 text-center"><span class="inline-block px-2 py-1 rounded-lg text-xs font-bold ${notaP!==null?badgeColor(notaP):'bg-slate-100 text-slate-400'}">${notaP!==null?notaP+'%':'—'}</span></td><td></td></tr>
+        <tr class="bg-indigo-50"><td colspan="5" class="px-4 py-3 text-right font-bold text-indigo-900">NOTA FINAL ESTIMADA</td>
+            <td class="px-4 py-3 text-center"><span class="inline-block px-3 py-1 rounded-lg font-black text-sm ${badgeColor(notaF)}">${notaF}%</span></td>
+            <td class="px-4 py-3"><span class="text-xs font-bold ${notaF>=70?'text-emerald-600':'text-red-600'}">${notaF>=70?'✓ APROBADO':'✗ REPROBADO'}</span></td></tr>`;
+
+    if(chartBarrasInst){chartBarrasInst.destroy();chartBarrasInst=null;}
+    if(chartRadarInst){chartRadarInst.destroy();chartRadarInst=null;}
+    const labels=filasTbl.map(f=>f.comp); const promedios=filasTbl.map(f=>f.promedio);
+    const bgColors=filasTbl.map(f=>COLORES_COMP[f.comp]||"#94a3b8");
+    chartBarrasInst=new Chart(document.getElementById('chartBarras'),{type:'bar',data:{labels:labels.map(l=>l.length>16?l.slice(0,14)+'…':l),datasets:[{label:'%',data:promedios,backgroundColor:bgColors,borderRadius:8,borderSkipped:false}]},options:{responsive:true,plugins:{legend:{display:false}},scales:{y:{min:0,max:100,ticks:{callback:v=>v+'%'}},x:{grid:{display:false}}}}});
+    chartRadarInst=new Chart(document.getElementById('chartRadar'),{type:'radar',data:{labels:labels.map(l=>l.length>14?l.slice(0,12)+'…':l),datasets:[{label:'Promedio',data:promedios,backgroundColor:'rgba(99,102,241,0.15)',borderColor:'#6366f1',pointBackgroundColor:bgColors,pointRadius:4,borderWidth:2}]},options:{responsive:true,plugins:{legend:{display:false}},scales:{r:{min:0,max:100,ticks:{stepSize:20,callback:v=>v+'%',font:{size:10}},pointLabels:{font:{size:10}}}}}});
+
+    // ═══════════════════════════════════════════════════════════
+    // MOTOR DE CONSOLIDACIÓN DIARIA ANÓNIMA CON COMENTARIOS
+    // ═══════════════════════════════════════════════════════════
+    const gruposDiarios = {};
+    filas.forEach(r => {
+        const clave = `${r.fecha}||${r._comp}`;
+        if (!gruposDiarios[clave]) {
+            gruposDiarios[clave] = {
+                fecha: r.fecha,
+                componente: r._comp,
+                tema: r.tema || r.surgeryType || "Evaluación académica",
+                evaluacionesCount: 0,
+                sumaTotal: 0,
+                c1Suma: 0, c1Count: 0,
+                c2Suma: 0, c2Count: 0,
+                c3Suma: 0, c3Count: 0,
+                comentariosList: [],
+                maxPosible: r._comp === "Clases Programadas" ? 30 : (r._comp === "Casos Clínicos y Artículos" ? 20 : 20)
+            };
+        }
+        
+        gruposDiarios[clave].evaluacionesCount++;
+        gruposDiarios[clave].sumaTotal += r._pct;
+
+        const txtComentario = (r.comentarios || r.observaciones || "").trim();
+        if(txtComentario && txtComentario.toLowerCase() !== "ninguno" && txtComentario.toLowerCase() !== "ninguna") {
+            gruposDiarios[clave].comentariosList.push(txtComentario);
+        }
+
+        let c1 = parseInt(r.criterio1 || r.score1 || r.aspecto1);
+        let c2 = parseInt(r.criterio2 || r.score2 || r.aspecto2);
+        let c3 = parseInt(r.criterio3 || r.score3 || 0);
+
+        if (!isNaN(c1)) { 
+            let maxC1 = r._comp === "Clases Programadas" ? 10 : (r._comp === "Casos Clínicos y Artículos" ? 7 : 40);
+            if (r._comp === "Sesiones Diarias") maxC1 = 10;
+            gruposDiarios[clave].c1Suma += (c1 / maxC1) * 100; gruposDiarios[clave].c1Count++; 
+        }
+        if (!isNaN(c2)) { 
+            let maxC2 = r._comp === "Clases Programadas" ? 10 : (r._comp === "Casos Clínicos y Artículos" ? 6 : 30);
+            if (r._comp === "Sesiones Diarias") maxC2 = 10;
+            gruposDiarios[clave].c2Suma += (c2 / maxC2) * 100; gruposDiarios[clave].c2Count++; 
+        }
+        if (!isNaN(c3) && r._comp !== "Sesiones Diarias") { 
+            let maxC3 = r._comp === "Casos Clínicos y Artículos" ? 7 : 30;
+            gruposDiarios[clave].c3Suma += (c3 / maxC3) * 100; gruposDiarios[clave].c3Count++; 
+        }
+    });
+
+    const contenedorHTML = document.getElementById('contenedorConsolidadoDiario');
+    if (Object.keys(gruposDiarios).length === 0) {
+        contenedorHTML.innerHTML = `<p class="text-xs text-slate-400 italic text-center py-2">No hay registros detallados para consolidar.</p>`;
+    } else {
+        contenedorHTML.innerHTML = Object.values(gruposDiarios).sort((a,b) => parseFecha(b.fecha) - parseFecha(a.fecha)).map((g, index) => {
+            const promGlobal = Math.round(g.sumaTotal / g.evaluacionesCount);
+            const notaEscala = Math.round((promGlobal * g.maxPosible) / 100);
+            
+            const promC1 = g.c1Count > 0 ? Math.round(g.c1Suma / g.c1Count) : null;
+            const promC2 = g.c2Count > 0 ? Math.round(g.c2Suma / g.c2Count) : null;
+            const promC3 = g.c3Count > 0 ? Math.round(g.c3Suma / g.c3Count) : null;
+
+            let aspectoA = g.componente === "Sesiones Diarias" ? "Profundidad y Calidad del Conocimiento Neuroquirúrgico" : "Estructura y Organización de la Presentación";
+            let aspectoB = g.componente === "Sesiones Diarias" ? "Análisis Crítico y Contribución a la Estrategia" : "Literatura Científica Variada y Pertinente";
+            let aspectoC = g.componente === "Práctica Quirúrgica" ? "Comportamiento adecuado en Quirófano" : "Dominio del Tema y Manejo de Preguntas";
+
+            if (g.componente === "Práctica Quirúrgica") {
+                aspectoA = "Adecuada Preparación Académica para el Caso";
+                aspectoB = "Habilidad Técnica y Destreza con Instrumentos";
+            }
+
+            const colorBadge = promGlobal >= 70 ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : 'bg-red-50 text-red-700 border-red-200';
+
+            return `
+            <div class="border border-slate-200 rounded-xl overflow-hidden shadow-sm bg-slate-50/50">
+                <button onclick="document.getElementById('drop-${index}').classList.toggle('hidden')" 
+                    class="w-full text-left px-4 py-3.5 bg-white hover:bg-slate-50 transition flex items-center justify-between gap-3 flex-wrap">
+                    <div class="min-w-0 flex-1">
+                        <div class="flex items-center gap-2 flex-wrap mb-1">
+                            <span class="text-[11px] font-bold text-indigo-600 bg-indigo-50 px-2 py-0.5 rounded-md border border-indigo-100">${g.fecha}</span>
+                            <span class="text-[11px] font-semibold text-slate-500 bg-slate-100 px-2 py-0.5 rounded-md">${g.componente}</span>
+                            <span class="text-[11px] text-violet-600 font-bold bg-violet-50 px-2 py-0.5 rounded-md">Evaluado por ${g.evaluacionesCount} especialista${g.evaluacionesCount > 1 ? 'es' : ''}</span>
+                        </div>
+                        <p class="text-sm font-bold text-slate-800 truncate">"${g.tema}"</p>
+                    </div>
+                    <div class="flex items-center gap-3">
+                        <div class="text-center px-3 py-1 rounded-xl border ${colorBadge} bg-white">
+                            <p class="text-base font-black leading-none">${promGlobal}%</p>
+                            <p class="text-[10px] font-bold opacity-70 mt-0.5">${notaEscala}/${g.maxPosible} pts</p>
+                        </div>
+                        <svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                    </div>
+                </button>
+                
+                <div id="drop-${index}" class="hidden p-4 bg-white border-t border-slate-200 space-y-4 text-sm text-slate-700">
+                    <p class="text-xs font-bold uppercase tracking-wider text-slate-400 border-b border-slate-100 pb-1">Promedio de Criterios Individuales</p>
+                    
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+                        ${promC1 !== null ? `
+                        <div class="space-y-1">
+                            <div class="flex justify-between text-xs font-semibold text-slate-600">
+                                <span class="truncate pr-2">a) ${aspectoA}</span>
+                                <span class="${promC1 >= 70 ? 'text-emerald-600' : 'text-red-500'}">${promC1}%</span>
+                            </div>
+                            <div class="w-full bg-slate-100 rounded-full h-2 overflow-hidden">
+                                <div class="h-2 rounded-full ${promC1 >= 70 ? 'bg-emerald-500' : 'bg-red-400'}" style="width: ${promC1}%"></div>
+                            </div>
+                        </div>` : ''}
+
+                        ${promC2 !== null ? `
+                        <div class="space-y-1">
+                            <div class="flex justify-between text-xs font-semibold text-slate-600">
+                                <span class="truncate pr-2">b) ${aspectoB}</span>
+                                <span class="${promC2 >= 70 ? 'text-emerald-600' : 'text-red-500'}">${promC2}%</span>
+                            </div>
+                            <div class="w-full bg-slate-100 rounded-full h-2 overflow-hidden">
+                                <div class="h-2 rounded-full ${promC2 >= 70 ? 'bg-emerald-500' : 'bg-red-400'}" style="width: ${promC2}%"></div>
+                            </div>
+                        </div>` : ''}
+
+                        ${promC3 !== null ? `
+                        <div class="space-y-1 sm:col-span-2">
+                            <div class="flex justify-between text-xs font-semibold text-slate-600">
+                                <span class="truncate pr-2">c) ${aspectoC}</span>
+                                <span class="${promC3 >= 70 ? 'text-emerald-600' : 'text-red-500'}">${promC3}%</span>
+                            </div>
+                            <div class="w-full bg-slate-100 rounded-full h-2 overflow-hidden">
+                                <div class="h-2 rounded-full ${promC3 >= 70 ? 'bg-emerald-500' : 'bg-red-400'}" style="width: ${promC3}%"></div>
+                            </div>
+                        </div>` : ''}
+                    </div>
+
+                    <div class="pt-2">
+                        <p class="text-xs font-bold uppercase tracking-wider text-slate-400 border-b border-slate-100 pb-1 mb-2">Retroalimentación docente</p>
+                        ${g.comentariosList.length === 0 
+                            ? `<p class="text-xs text-slate-400 italic">No se registraron comentarios cualitativos para esta fecha.</p>`
+                            : `<ul class="list-disc pl-4 space-y-1.5 text-xs text-slate-600 font-medium">
+                                 ${g.comentariosList.map(c => `<li>"${c}"</li>`).join('')}
+                               </ul>`
+                        }
+                    </div>
+
+                    <div class="bg-indigo-50/50 rounded-xl p-3 border border-indigo-100 flex justify-between items-center mt-1">
+                        <span class="text-xs font-bold text-indigo-950 uppercase tracking-wide">Promedio Global Acumulado:</span>
+                        <span class="text-sm font-black ${promGlobal >= 70 ? 'text-emerald-600' : 'text-red-600'}">${promGlobal}%</span>
+                    </div>
+                </div>
+            </div>`;
+        }).join('');
+    }
+
+    const modMap={};
+    filas.forEach(r=>{const m=r._modulo;if(!modMap[m])modMap[m]=[];modMap[m].push(r);});
+    document.getElementById('barrasModulo').innerHTML=Object.keys(modMap).sort().map(m=>{
+        const rows=modMap[m]; const prom=Math.round(rows.reduce((s,r)=>s+r._pct,0)/rows.length); const ap=prom>=70;
+        return `<div><div class="flex justify-between items-center mb-1"><span class="text-sm font-semibold text-slate-700">Módulo ${m}</span><span class="text-sm font-bold ${ap?'text-emerald-600':'text-red-500'}">${prom}% — ${ap?'Aprobado':'Reprobado'}</span></div><div class="w-full bg-slate-200 rounded-full h-3"><div class="h-3 rounded-full ${colorBarra(prom)}" style="width:${prom}%"></div></div><p class="text-xs text-slate-400 mt-0.5">${rows.length} evaluación${rows.length!==1?'es':''}</p></div>`;
+    }).join('');
+
+    document.getElementById('secNotas').classList.remove('hidden');
+}
+
+async function cargarPendientes() {
+    const modo = document.getElementById('selModoVista').value;
+    const sec = document.getElementById('secPendientes');
+    sec.innerHTML='';
+    sec.classList.add('hidden');
+    mostrarMsgPend("Cargando desde Google Sheets…");
+
+    let datos;
+    try { datos = await fetchEvaluaciones(); }
+    catch(e) { mostrarMsgPend("⚠️ No se pudo conectar. Verifica tu conexión."); return; }
+
+    if (!Array.isArray(datos)) { mostrarMsgPend("Error al leer datos."); return; }
+
+    document.getElementById('msgPendEstado').classList.add('hidden');
+
+    if (modo === 'residente') {
+        const residente = document.getElementById('selPendResidente').value.trim();
+        if (!residente) { mostrarMsgPend("Selecciona un residente."); return; }
+        const anio = RESIDENTE_ANIO[residente];
+        const evalRes = datos.filter(r=>(r.nombreResidente||r.residentName||r.residente||"").trim()===residente);
+        sec.innerHTML = renderPanelResidente(residente, anio, evalRes);
+    } else {
+        const anio = document.getElementById('selPendAnio').value;
+        const residentes = ANIO_RESIDENTES[anio]||[];
+        const html = residentes.map(res=>{
+            const evalRes = datos.filter(r=>(r.nombreResidente||r.residentName||r.residente||"").trim()===res);
+            return renderPanelResidente(res, anio, evalRes);
+        }).join('');
+        sec.innerHTML = html || '<p class="text-slate-400 text-sm">Sin residentes.</p>';
+    }
+
+    sec.classList.remove('hidden');
+}
+
+function mostrarMsgPend(txt) {
+    document.getElementById('msgPendTexto').textContent = txt;
+    document.getElementById('msgPendEstado').classList.remove('hidden');
+    document.getElementById('secPendientes').classList.add('hidden');
+}
+
+function renderPanelResidente(residente, anio, evalRes) {
+    const ayer = new Date(); ayer.setHours(0,0,0,0); ayer.setDate(ayer.getDate()-1);
+    const clasesAnio = CLASES.filter(c=>c.anio===anio && parseFecha(c.f)<=ayer).map(c=>({
+        ...c,
+        modulo: getModulo(c.f)||"Sin módulo",
+        tipo: getTipoClase(c.tema)
+    }));
+
+    const clasesConEstado = clasesAnio.map(c => {
+        const evaluada = evalRes.some(ev =>
+            (ev.tipo_evaluacion||"").trim() === c.tipo &&
+            hayCoincidencia(c.tema, ev.tema||"")
+        );
+        return { ...c, evaluada };
+    });
+
+    const pendientes = clasesConEstado.filter(c=>!c.evaluada);
+    const completadas = clasesConEstado.filter(c=>c.evaluada);
+
+    const modulos = MODULOS_FECHAS.map(m=>m.modulo);
+    const modPract = {};
+    modulos.forEach(m=>{ modPract[m]=evalRes.some(ev=>(ev.tipo_evaluacion||"").trim()==="Práctica Quirúrgica"&&getModulo(ev.fecha)===m); });
+
+    const modSesiones = {};
+    modulos.forEach(m=>{ modSesiones[m]=evalRes.filter(ev=>(ev.tipo_evaluacion||"").trim()==="Sesiones Diarias"&&getModulo(ev.fecha)===m).length; });
+
+    const pendPorMod = {};
+    pendientes.forEach(c=>{ if(!pendPorMod[c.modulo]) pendPorMod[c.modulo]=[]; pendPorMod[c.modulo].push(c); });
+
+    const pctCompleto = clasesAnio.length > 0 ? Math.round(completadas.length*100/clasesAnio.length) : 0;
+    const colPct = pctCompleto>=80?'text-emerald-600':pctCompleto>=50?'text-amber-500':'text-red-500';
+
+    return `
+    <div class="bg-white rounded-2xl shadow border border-slate-200 overflow-hidden">
+        <div class="bg-gradient-to-r from-slate-800 to-slate-700 text-white px-5 py-4 flex items-center justify-between flex-wrap gap-2">
+            <div>
+                <p class="font-black text-base">${residente}</p>
+                <p class="text-slate-300 text-xs mt-0.5">${anio} año de residencia</p>
+            </div>
+            <div class="flex gap-3 items-center">
+                <div class="text-center">
+                    <p class="text-2xl font-black ${colPct}">${pctCompleto}%</p>
+                    <p class="text-xs text-slate-400">clases evaluadas</p>
+                </div>
+                <div class="text-center">
+                    <p class="text-2xl font-black text-rose-400">${pendientes.length}</p>
+                    <p class="text-xs text-slate-400">pendientes</p>
+                </div>
+                <div class="text-center">
+                    <p class="text-2xl font-black text-emerald-400">${completadas.length}</p>
+                    <p class="text-xs text-slate-400">evaluadas</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="p-5 space-y-5">
+            <div>
+                <div class="flex justify-between text-xs text-slate-500 mb-1">
+                    <span>Progreso clases teóricas</span><span>${completadas.length}/${clasesAnio.length}</span>
+                </div>
+                <div class="w-full bg-slate-200 rounded-full h-3">
+                    <div class="h-3 rounded-full transition-all ${colorBarra(pctCompleto)}" style="width:${pctCompleto}%"></div>
+                </div>
+            </div>
+
+            <div>
+                <h4 class="text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Práctica Quirúrgica (≥1 por módulo)</h4>
+                <div class="grid grid-cols-3 sm:grid-cols-6 gap-2">
+                    ${modulos.map(m=>{
+                        const ok = modPract[m];
+                        const hayClases = clasesAnio.some(c=>c.modulo===m);
+                        if (!hayClases) return '';
+                        return `<div class="rounded-xl p-2 text-center border-2 ${ok?'bg-emerald-50 border-emerald-300':'bg-rose-50 border-rose-200'}">
+                            <p class="text-xs font-black ${ok?'text-emerald-700':'text-rose-600'}">Mód. ${m}</p>
+                            <p class="text-lg">${ok?'✓':'✗'}</p>
+                            <p class="text-xs ${ok?'text-emerald-600':'text-rose-500'}">${ok?'OK':'Falta'}</p>
+                        </div>`;
+                    }).join('')}
+                </div>
+            </div>
+
+            <div>
+                <h4 class="text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Sesiones Clínicas Diarias evaluadas por módulo</h4>
+                <div class="grid grid-cols-3 sm:grid-cols-6 gap-2">
+                    ${modulos.map(m=>{
+                        const n = modSesiones[m]||0;
+                        const hayClases = clasesAnio.some(c=>c.modulo===m);
+                        if (!hayClases) return '';
+                        const color = n>=3?'bg-emerald-50 border-emerald-300 text-emerald-700':n>=1?'bg-amber-50 border-amber-300 text-amber-700':'bg-rose-50 border-rose-200 text-rose-600';
+                        return `<div class="rounded-xl p-2 text-center border-2 ${color}">
+                            <p class="text-xs font-black">Mód. ${m}</p>
+                            <p class="text-2xl font-black">${n}</p>
+                            <p class="text-xs">${n===0?'Ninguna':n===1?'1 sesión':n+' sesiones'}</p>
+                        </div>`;
+                    }).join('')}
+                </div>
+            </div>
+
+            ${pendientes.length===0
+                ? `<div class="bg-emerald-50 border border-emerald-200 rounded-xl p-4 text-center text-emerald-700 font-bold text-sm">✓ Todas las clases del plan docente han sido evaluadas</div>`
+                : `<div>
+                    <h4 class="text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Clases del plan docente sin evaluación registrada</h4>
+                    <div class="space-y-3">
+                    ${Object.keys(pendPorMod).sort().map(mod=>`
+                        <div class="border border-slate-200 rounded-xl overflow-hidden">
+                            <div class="bg-slate-50 px-4 py-2 flex items-center justify-between border-b border-slate-200">
+                                <span class="text-sm font-bold text-slate-700">Módulo ${mod}</span>
+                                <span class="text-xs bg-rose-100 text-rose-700 font-bold px-2 py-0.5 rounded-full">${pendPorMod[mod].length} pendiente${pendPorMod[mod].length!==1?'s':''}</span>
+                            </div>
+                            <div class="divide-y divide-slate-100">
+                            ${pendPorMod[mod].map(c=>`
+                                <div class="px-4 py-2.5 flex items-center gap-3">
+                                    <span class="flex-shrink-0 w-5 h-5 rounded-full bg-rose-100 flex items-center justify-center text-rose-500 text-xs font-black">✗</span>
+                                    <div class="flex-grow min-w-0">
+                                        <p class="text-sm text-slate-800 font-medium leading-snug truncate">${c.tema}</p>
+                                        <p class="text-xs text-slate-400">${c.f} · <span class="text-indigo-600 font-medium">${c.tipo}</span></p>
+                                    </div>
+                                </div>`).join('')}
+                            </div>
+                        </div>`).join('')}
+                    </div>
+                </div>`
+            }
+        </div>
+    </div>`;
+}
+</script>
+</body>
+</html>
