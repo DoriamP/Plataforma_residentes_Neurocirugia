@@ -17,6 +17,89 @@
         <p class="text-indigo-200 text-sm mt-1">Seguimiento académico — Neurocirugía</p>
     </div>
 
+    <!-- ══════════════════════════════════════════════════════════ -->
+    <!-- SECCIÓN: CLASES PROGRAMADAS                               -->
+    <!-- ══════════════════════════════════════════════════════════ -->
+    <div class="bg-white rounded-2xl shadow border border-slate-200 overflow-hidden">
+        <div class="bg-gradient-to-r from-indigo-800 to-indigo-600 px-5 py-4 flex items-center justify-between">
+            <div class="flex items-center gap-2 text-white">
+                <svg class="w-5 h-5 text-indigo-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+                <h2 class="font-bold text-sm">Clases Programadas</h2>
+            </div>
+            <span class="text-xs text-indigo-200 font-medium hidden sm:block">Plan Docente 2026</span>
+        </div>
+
+        <!-- Filtros -->
+        <div class="px-5 py-3 border-b border-slate-100 flex flex-wrap gap-4 items-end">
+            <div>
+                <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Año de Residencia</label>
+                <select id="filtroClaseAnio" onchange="renderClases()"
+                    class="px-3 py-2 bg-white border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 outline-none appearance-none">
+                    <option value="">Todos los años</option>
+                    <option value="I">I Año</option>
+                    <option value="II">II Año</option>
+                    <option value="III">III Año</option>
+                    <option value="IV">IV Año</option>
+                    <option value="V">V Año</option>
+                </select>
+            </div>
+            <div>
+                <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Mes</label>
+                <select id="filtroClaseMes" onchange="renderClases()"
+                    class="px-3 py-2 bg-white border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 outline-none appearance-none">
+                    <option value="">Todos los meses</option>
+                    <option value="4">Mayo</option>
+                    <option value="5">Junio</option>
+                    <option value="6">Julio</option>
+                    <option value="7">Agosto</option>
+                    <option value="8">Septiembre</option>
+                    <option value="9">Octubre</option>
+                    <option value="10">Noviembre</option>
+                    <option value="11">Diciembre</option>
+                    <option value="0">Enero</option>
+                    <option value="1">Febrero</option>
+                    <option value="2">Marzo</option>
+                    <option value="3">Abril</option>
+                </select>
+            </div>
+            <div id="claseContador" class="ml-auto text-xs text-slate-400 font-medium self-center"></div>
+        </div>
+
+        <!-- Carrusel -->
+        <div class="relative py-4" style="padding-left:40px;padding-right:40px;">
+            <button onclick="scrollClaseCarousel(-1)"
+                class="absolute left-2 top-1/2 -translate-y-1/2 z-10 bg-white rounded-full shadow-md border border-slate-200 w-8 h-8 flex items-center justify-center text-slate-500 hover:bg-indigo-50 hover:text-indigo-700 transition text-lg font-bold">‹</button>
+            <div id="claseCarousel"
+                class="flex gap-3 overflow-x-auto scroll-smooth"
+                style="scrollbar-width:none;-ms-overflow-style:none;scroll-snap-type:x mandatory;">
+            </div>
+            <button onclick="scrollClaseCarousel(1)"
+                class="absolute right-2 top-1/2 -translate-y-1/2 z-10 bg-white rounded-full shadow-md border border-slate-200 w-8 h-8 flex items-center justify-center text-slate-500 hover:bg-indigo-50 hover:text-indigo-700 transition text-lg font-bold">›</button>
+        </div>
+        <p id="claseVacio" class="hidden text-slate-400 text-sm text-center py-6">No hay clases para los filtros seleccionados.</p>
+    </div>
+
+    <!-- ══════════════════════════════════════════════════════════ -->
+    <!-- SECCIÓN: FECHAS IMPORTANTES                               -->
+    <!-- ══════════════════════════════════════════════════════════ -->
+    <div class="bg-white rounded-2xl shadow border border-slate-200 overflow-hidden">
+        <div class="bg-gradient-to-r from-amber-700 to-orange-600 px-5 py-4 flex items-center justify-between text-white">
+            <div class="flex items-center gap-2">
+                <svg width="20" height="18" viewBox="0 0 20 18" class="flex-shrink-0">
+                    <polygon points="10,1 19,17 1,17" fill="#fef08a" stroke="#fbbf24" stroke-width="1.5"/>
+                    <text x="10" y="14" text-anchor="middle" font-size="9" font-weight="900" fill="#92400e">!</text>
+                </svg>
+                <h2 class="font-bold text-sm">Fechas Importantes</h2>
+            </div>
+            <span class="text-xs text-amber-200 font-medium hidden sm:block">Exámenes y presentaciones de avances</span>
+        </div>
+
+        <!-- Lista vertical scrollable -->
+        <div id="listFechasImportantes" class="divide-y divide-slate-100" style="max-height:340px;overflow-y:auto;">
+        </div>
+        <p id="fechasVacio" class="hidden text-slate-400 text-sm text-center py-6">No hay fechas importantes registradas.</p>
+    </div>
+
     <!-- TABS -->
     <div class="flex gap-2 bg-white rounded-2xl p-1.5 shadow border border-slate-200">
         <button id="tabNotas" onclick="cambiarTab('notas')"
@@ -172,10 +255,40 @@
 .tab-activo   { background:#4338ca; color:#fff; }
 .tab-inactivo { background:transparent; color:#64748b; }
 .tab-inactivo:hover { background:#f1f5f9; color:#1e293b; }
+#claseCarousel::-webkit-scrollbar { display:none; }
+#listFechasImportantes::-webkit-scrollbar { width:5px; }
+#listFechasImportantes::-webkit-scrollbar-thumb { background:#e2e8f0; border-radius:99px; }
+.clase-card { scroll-snap-align:start; flex-shrink:0; width:210px; border-radius:14px; border-width:2px; border-style:solid; padding:14px; position:relative; transition:box-shadow .2s; }
+.clase-card:hover { box-shadow:0 4px 16px rgba(0,0,0,.10); }
+.clase-card-hoy { box-shadow:0 0 0 3px #6366f1, 0 4px 18px rgba(99,102,241,.25); }
+.clase-card-pasada { opacity:.55; }
 </style>
 
 <script>
 const URL_SCRIPT = "https://script.google.com/macros/s/AKfycbzwxFznLdmraLeYOP3VxEGm53p6MZLmYWt5AyjJ72j-vSUkhkTBDWprNCtK1yfm82m_/exec";
+
+// ── Caché de temas manuales (sincronizado con Google Sheets) ──
+let _temasCache = {};
+
+async function fetchTemas() {
+    try {
+        const resp = await fetch(`${URL_SCRIPT}?action=getTemas`, { mode: 'cors' });
+        const data = await resp.json();
+        if (Array.isArray(data)) {
+            data.forEach(t => {
+                if (t.fecha && t.anio && t.tema) {
+                    const key = 'manual_tema_' + t.anio + '_' + t.fecha;
+                    _temasCache[key] = t.tema;
+                    localStorage.setItem(key, t.tema); // sincroniza localStorage
+                }
+            });
+        }
+    } catch(e) { /* usa localStorage como fallback */ }
+}
+
+function getTemaGuardado(key) {
+    return _temasCache[key] || localStorage.getItem(key) || '';
+}
 
 const RESIDENTE_ANIO = {
     "María Teresa Quintana Duarte": "I",    "Kevin Yassir Bobb García": "I",
@@ -220,136 +333,445 @@ const COLORES_COMP = {
 };
 
 const CLASES = [
-    { f:"25/05/2026", tema:"Presentación de caso clínico", anio:"I" },
-    { f:"01/06/2026", tema:"Instrumental quirúrgico en neurocirugía", anio:"I" },
-    { f:"08/06/2026", tema:"Revisión de un tema y artículos científicos", anio:"I" },
-    { f:"22/06/2026", tema:"Posiciones básicas operatorias en cirugía craneal y espinal", anio:"I" },
-    { f:"06/07/2026", tema:"Principios de craneotomía: topografía craneocerebral", anio:"I" },
-    { f:"13/07/2026", tema:"Revisión de un tema y artículos científicos", anio:"I" },
-    { f:"03/08/2026", tema:"Manejo inicial de trauma craneoencefálico del adulto", anio:"I" },
-    { f:"10/08/2026", tema:"Investigación clínica: el proceso y bases de la investigación", anio:"I" },
-    { f:"17/08/2026", tema:"Manejo inicial de trauma espinal", anio:"I" },
-    { f:"24/08/2026", tema:"Presentación de caso clínico", anio:"I" },
-    { f:"07/09/2026", tema:"Hidrocefalia", anio:"I" },
-    { f:"14/09/2026", tema:"Craneotomía frontotemporal pterional", anio:"I" },
-    { f:"21/09/2026", tema:"Manejo en emergencias de TCE pediátrico", anio:"I" },
-    { f:"05/10/2026", tema:"Presentación de caso clínico", anio:"I" },
-    { f:"26/10/2026", tema:"Investigación clínica: ética e investigación", anio:"I" },
-    { f:"02/11/2026", tema:"Nervios craneales I-II", anio:"I" },
-    { f:"09/11/2026", tema:"Nervios craneales III-IV-VI", anio:"I" },
-    { f:"16/11/2026", tema:"Nervios craneales V-VIII", anio:"I" },
-    { f:"23/11/2026", tema:"Nervios craneales IX-XII", anio:"I" },
-    { f:"01/12/2026", tema:"Revisión de un tema y artículos científicos", anio:"I" },
-    { f:"11/01/2027", tema:"Médula espinal (vías ascendentes)", anio:"I" },
-    { f:"18/01/2027", tema:"Médula espinal (vías descendentes)", anio:"I" },
-    { f:"25/01/2027", tema:"Presentación de caso clínico", anio:"I" },
-    { f:"01/02/2027", tema:"Presentación de caso clínico", anio:"I" },
-    { f:"08/02/2027", tema:"Irrigación del encéfalo y médula espinal", anio:"I" },
-    { f:"26/05/2026", tema:"Presentación de caso clínico", anio:"II" },
-    { f:"02/06/2026", tema:"Manejo en UCI del trauma craneoencefálico", anio:"II" },
-    { f:"09/06/2026", tema:"Manejo quirúrgico de TCE (parte 1)", anio:"II" },
-    { f:"16/06/2026", tema:"Investigación: clasificación de los tipos de estudio", anio:"II" },
-    { f:"23/06/2026", tema:"Manejo quirúrgico de TCE (parte 2)", anio:"II" },
-    { f:"07/07/2026", tema:"Revisión de un tema y artículos científicos", anio:"II" },
-    { f:"14/07/2026", tema:"Revisión de un tema y artículos científicos", anio:"II" },
-    { f:"21/07/2026", tema:"Manejo quirúrgico de TCE (parte 3)", anio:"II" },
-    { f:"28/07/2026", tema:"Investigación: ensayo clínico aleatorio", anio:"II" },
-    { f:"04/08/2026", tema:"Craniectomía descompresiva", anio:"II" },
-    { f:"01/09/2026", tema:"Trauma craneoencefálico leve", anio:"II" },
-    { f:"08/09/2026", tema:"Hematoma subdural crónico", anio:"II" },
-    { f:"15/09/2026", tema:"Fístula de LCR postraumática", anio:"II" },
-    { f:"06/10/2026", tema:"Presentación de caso clínico", anio:"II" },
-    { f:"13/10/2026", tema:"Presentación de caso clínico", anio:"II" },
-    { f:"20/10/2026", tema:"Evaluación y clasificación de inestabilidad espinal", anio:"II" },
-    { f:"03/11/2026", tema:"Lesiones craneocervicales", anio:"II" },
-    { f:"10/11/2026", tema:"Lesiones de C2", anio:"II" },
-    { f:"15/01/2027", tema:"Lesiones subaxiales cervicales", anio:"II" },
-    { f:"22/01/2027", tema:"Lesiones unión cervicotorácica", anio:"II" },
-    { f:"29/01/2027", tema:"Manejo médico de lesión medular", anio:"II" },
-    { f:"12/02/2027", tema:"Lesiones toracolumbares", anio:"II" },
-    { f:"19/02/2027", tema:"Revisión de un tema y artículos científicos", anio:"II" },
-    { f:"26/02/2027", tema:"Revisión de un tema y artículos científicos", anio:"II" },
-    { f:"27/05/2026", tema:"Presentación de caso clínico", anio:"III" },
-    { f:"03/06/2026", tema:"Hernia discal cervical", anio:"III" },
-    { f:"10/06/2026", tema:"Hernia discal dorsal", anio:"III" },
-    { f:"17/06/2026", tema:"Hernia discal lumbar", anio:"III" },
-    { f:"24/06/2026", tema:"Estenosis cervical, dorsal y lumbar", anio:"III" },
-    { f:"01/07/2026", tema:"Espondilolistesis degenerativa lumbar", anio:"III" },
-    { f:"08/07/2026", tema:"Mielopatía cervical degenerativa", anio:"III" },
-    { f:"15/07/2026", tema:"Revisión de un tema y artículos científicos", anio:"III" },
-    { f:"22/07/2026", tema:"Instrumentación posterior torácica y lumbar", anio:"III" },
-    { f:"05/08/2026", tema:"Revisión de un tema y artículos científicos", anio:"III" },
-    { f:"02/09/2026", tema:"Investigación: estudio de cohortes", anio:"III" },
-    { f:"09/09/2026", tema:"Instrumentación cervical anterior", anio:"III" },
-    { f:"16/09/2026", tema:"PLIF, TLIF y ALIF", anio:"III" },
-    { f:"23/09/2026", tema:"Presentación de caso clínico", anio:"III" },
-    { f:"07/10/2026", tema:"Presentación de caso clínico", anio:"III" },
-    { f:"14/10/2026", tema:"Clasificación de deformidad espinal", anio:"III" },
-    { f:"21/10/2026", tema:"Evaluación de alineación espinal", anio:"III" },
-    { f:"28/10/2026", tema:"Evaluación y tratamiento de deformidad cervical", anio:"III" },
-    { f:"04/11/2026", tema:"Evaluación y tratamiento de la escoliosis del adulto", anio:"III" },
-    { f:"13/01/2027", tema:"Tumores benignos del esqueleto axial", anio:"III" },
-    { f:"20/01/2027", tema:"Tumores malignos primarios del esqueleto axial", anio:"III" },
-    { f:"27/01/2027", tema:"Tumores benignos intradurales extramedulares", anio:"III" },
-    { f:"03/02/2027", tema:"Metástasis espinal", anio:"III" },
-    { f:"10/02/2027", tema:"Tumores malignos primarios", anio:"III" },
-    { f:"17/02/2027", tema:"Revisión de un tema y artículos científicos", anio:"III" },
-    { f:"24/02/2027", tema:"Revisión de un tema y artículos científicos", anio:"III" },
-    { f:"28/05/2026", tema:"Presentación de caso clínico", anio:"IV" },
-    { f:"04/06/2026", tema:"Gliomas de bajo grado", anio:"IV" },
-    { f:"11/06/2026", tema:"Gliomas malignos", anio:"IV" },
-    { f:"18/06/2026", tema:"Revisión de un tema y artículos científicos", anio:"IV" },
-    { f:"25/06/2026", tema:"Meduloblastomas en niños y adultos", anio:"IV" },
-    { f:"02/07/2026", tema:"Ependimomas intracraneales en niños y adultos", anio:"IV" },
-    { f:"09/07/2026", tema:"Metástasis cerebral", anio:"IV" },
-    { f:"16/07/2026", tema:"Meningiomas (no base de cráneo)", anio:"IV" },
-    { f:"23/07/2026", tema:"Revisión de un tema y artículos científicos", anio:"IV" },
-    { f:"30/07/2026", tema:"Revisión de un tema y artículos científicos", anio:"IV" },
-    { f:"20/08/2026", tema:"Investigación: estudios de casos control", anio:"IV" },
-    { f:"27/08/2026", tema:"Investigación: estudios descriptivos", anio:"IV" },
-    { f:"03/09/2026", tema:"Schwannomas vestibulares", anio:"IV" },
-    { f:"10/09/2026", tema:"Meningioma de base de cráneo", anio:"IV" },
-    { f:"17/09/2026", tema:"Tumores de hipófisis", anio:"IV" },
-    { f:"24/09/2026", tema:"Presentación de caso clínico", anio:"IV" },
-    { f:"01/10/2026", tema:"Presentación de caso clínico", anio:"IV" },
-    { f:"08/10/2026", tema:"Presentación de caso clínico", anio:"IV" },
-    { f:"15/10/2026", tema:"Investigación: protocolo y objetivos del estudio", anio:"IV" },
-    { f:"22/10/2026", tema:"Cordomas y condrosarcomas", anio:"IV" },
-    { f:"05/11/2026", tema:"Craneofaringiomas", anio:"IV" },
-    { f:"14/01/2027", tema:"Evaluación de pacientes para cirugía de epilepsia", anio:"IV" },
-    { f:"21/01/2027", tema:"Lobectomía temporal anteromedial", anio:"IV" },
-    { f:"28/01/2027", tema:"Resecciones extratemporales en cirugía de epilepsia", anio:"IV" },
-    { f:"04/02/2027", tema:"Estimulación eléctrica para epilepsia (DBS)", anio:"IV" },
-    { f:"11/02/2027", tema:"Revisión de un tema y artículos científicos", anio:"IV" },
-    { f:"18/02/2027", tema:"Cirugía para enfermedad de Parkinson", anio:"IV" },
-    { f:"25/02/2027", tema:"Revisión de un tema y artículos científicos", anio:"IV" },
-    { f:"04/03/2027", tema:"Revisión de un tema y artículos científicos", anio:"IV" },
-    { f:"29/05/2026", tema:"Presentación de caso clínico", anio:"V" },
-    { f:"12/06/2026", tema:"Manejo microquirúrgico y endovascular de MAV", anio:"V" },
-    { f:"19/06/2026", tema:"Investigación: variable de respuesta", anio:"V" },
-    { f:"26/06/2026", tema:"Manejo microquirúrgico de aneurismas de carótida interna", anio:"V" },
-    { f:"02/07/2026", tema:"Revisión de un tema y artículos científicos", anio:"V" },
-    { f:"09/07/2026", tema:"Investigación: población de estudio", anio:"V" },
-    { f:"17/07/2026", tema:"Revisión de un tema y artículos científicos", anio:"V" },
-    { f:"24/07/2026", tema:"Manejo microquirúrgico de aneurismas de arteria comunicante anterior", anio:"V" },
-    { f:"07/08/2026", tema:"Manejo microquirúrgico de aneurismas de arteria cerebral media", anio:"V" },
-    { f:"04/09/2026", tema:"Endoscopia ventricular", anio:"V" },
-    { f:"18/09/2026", tema:"Craneosinostosis no sindrómica", anio:"V" },
-    { f:"25/09/2026", tema:"Presentación de caso clínico", anio:"V" },
-    { f:"02/10/2026", tema:"Craneosinostosis sindrómica", anio:"V" },
-    { f:"09/10/2026", tema:"Disrafismo espinal", anio:"V" },
-    { f:"16/10/2026", tema:"Revisión de un tema y artículos científicos", anio:"V" },
-    { f:"04/12/2026", tema:"Anatomía de base de cráneo anterior y media (Rhoton)", anio:"V" },
-    { f:"08/01/2027", tema:"Anatomía del ángulo pontocerebeloso (Rhoton)", anio:"V" },
+    // ── I Año ──────────────────────────────────────────────
+    { f:"25/05/2026", tema:"Presentación de caso clínico",                                          anio:"I",   dr:"Dra. Quintana" },
+    { f:"01/06/2026", tema:"Instrumental quirúrgico en neurocirugía",                               anio:"I",   dr:"Dr. Bobb" },
+    { f:"08/06/2026", tema:"Revisión de un tema y artículos científicos",                           anio:"I",   dr:"Dra. Quintana" },
+    { f:"22/06/2026", tema:"Posiciones básicas operatorias en cirugía craneal y espinal",           anio:"I",   dr:"Dr. Bobb" },
+    { f:"06/07/2026", tema:"Principios de craneotomía: topografía craneocerebral",                  anio:"I",   dr:"Dra. Quintana" },
+    { f:"13/07/2026", tema:"Revisión de un tema y artículos científicos",                           anio:"I",   dr:"Dr. Bobb" },
+    { f:"03/08/2026", tema:"Manejo inicial de trauma craneoencefálico del adulto",                  anio:"I",   dr:"Dra. Quintana" },
+    { f:"10/08/2026", tema:"Investigación clínica: el proceso y bases de la investigación",         anio:"I",   dr:"Dra. Quintana" },
+    { f:"17/08/2026", tema:"Manejo inicial de trauma espinal",                                      anio:"I",   dr:"Dr. Bobb" },
+    { f:"24/08/2026", tema:"Presentación de caso clínico",                                          anio:"I",   dr:"Dra. Quintana" },
+    { f:"07/09/2026", tema:"Hidrocefalia",                                                          anio:"I",   dr:"Dr. Bobb" },
+    { f:"14/09/2026", tema:"Craneotomía frontotemporal pterional",                                  anio:"I",   dr:"Dra. Quintana" },
+    { f:"21/09/2026", tema:"Manejo en emergencias de TCE pediátrico",                               anio:"I",   dr:"Dr. Bobb" },
+    { f:"05/10/2026", tema:"Presentación de caso clínico",                                          anio:"I",   dr:"Dra. Quintana" },
+    { f:"26/10/2026", tema:"Investigación clínica: ética e investigación",                          anio:"I",   dr:"Dr. Bobb" },
+    { f:"02/11/2026", tema:"Nervios craneales I-II",                                                anio:"I",   dr:"Dr. Bobb" },
+    { f:"09/11/2026", tema:"Nervios craneales III-IV-VI",                                           anio:"I",   dr:"Dra. Quintana" },
+    { f:"16/11/2026", tema:"Nervios craneales V-VIII",                                              anio:"I",   dr:"Dr. Bobb" },
+    { f:"23/11/2026", tema:"Nervios craneales IX-XII",                                              anio:"I",   dr:"Dra. Quintana" },
+    { f:"01/12/2026", tema:"Revisión de un tema y artículos científicos",                           anio:"I",   dr:"" },
+    { f:"11/01/2027", tema:"Médula espinal (vías ascendentes)",                                     anio:"I",   dr:"Dr. Bobb" },
+    { f:"18/01/2027", tema:"Médula espinal (vías descendentes)",                                    anio:"I",   dr:"Dra. Quintana" },
+    { f:"25/01/2027", tema:"Presentación de caso clínico",                                          anio:"I",   dr:"Dr. Bobb" },
+    { f:"01/02/2027", tema:"Presentación de caso clínico",                                          anio:"I",   dr:"Dra. Quintana" },
+    { f:"08/02/2027", tema:"Irrigación del encéfalo y médula espinal",                              anio:"I",   dr:"Dr. Bobb" },
+    // ── II Año ─────────────────────────────────────────────
+    { f:"26/05/2026", tema:"Presentación de caso clínico",                                          anio:"II",  dr:"Dr. Cuadra" },
+    { f:"02/06/2026", tema:"Manejo en UCI del trauma craneoencefálico",                             anio:"II",  dr:"Dra. Olivas" },
+    { f:"09/06/2026", tema:"Manejo quirúrgico de TCE (parte 1)",                                    anio:"II",  dr:"Dr. Cuadra" },
+    { f:"16/06/2026", tema:"Investigación: clasificación de los tipos de estudio",                  anio:"II",  dr:"Dra. Olivas" },
+    { f:"23/06/2026", tema:"Manejo quirúrgico de TCE (parte 2)",                                    anio:"II",  dr:"Dra. Olivas" },
+    { f:"07/07/2026", tema:"Revisión de un tema y artículos científicos",                           anio:"II",  dr:"Dr. Cuadra" },
+    { f:"14/07/2026", tema:"Revisión de un tema y artículos científicos",                           anio:"II",  dr:"Dra. Olivas" },
+    { f:"21/07/2026", tema:"Manejo quirúrgico de TCE (parte 3)",                                    anio:"II",  dr:"Dr. Cuadra" },
+    { f:"28/07/2026", tema:"Investigación: ensayo clínico aleatorio",                               anio:"II",  dr:"Dr. Cuadra" },
+    { f:"04/08/2026", tema:"Craniectomía descompresiva",                                            anio:"II",  dr:"Dra. Olivas" },
+    { f:"01/09/2026", tema:"Trauma craneoencefálico leve",                                          anio:"II",  dr:"Dr. Cuadra" },
+    { f:"08/09/2026", tema:"Hematoma subdural crónico",                                             anio:"II",  dr:"Dra. Olivas" },
+    { f:"15/09/2026", tema:"Fístula de LCR postraumática",                                          anio:"II",  dr:"Dr. Cuadra" },
+    { f:"06/10/2026", tema:"Presentación de caso clínico",                                          anio:"II",  dr:"Dra. Olivas" },
+    { f:"13/10/2026", tema:"Presentación de caso clínico",                                          anio:"II",  dr:"Dr. Cuadra" },
+    { f:"20/10/2026", tema:"Evaluación y clasificación de inestabilidad espinal",                   anio:"II",  dr:"Dra. Olivas" },
+    { f:"03/11/2026", tema:"Lesiones craneocervicales",                                             anio:"II",  dr:"Dr. Cuadra" },
+    { f:"10/11/2026", tema:"Lesiones de C2",                                                        anio:"II",  dr:"Dra. Olivas" },
+    { f:"15/01/2027", tema:"Lesiones subaxiales cervicales",                                        anio:"II",  dr:"Dr. Cuadra" },
+    { f:"22/01/2027", tema:"Lesiones unión cervicotorácica",                                        anio:"II",  dr:"Dra. Olivas" },
+    { f:"29/01/2027", tema:"Manejo médico de lesión medular",                                       anio:"II",  dr:"Dr. Cuadra" },
+    { f:"12/02/2027", tema:"Lesiones toracolumbares",                                               anio:"II",  dr:"Dra. Olivas" },
+    { f:"19/02/2027", tema:"Revisión de un tema y artículos científicos",                           anio:"II",  dr:"Dr. Cuadra" },
+    { f:"26/02/2027", tema:"Revisión de un tema y artículos científicos",                           anio:"II",  dr:"Dra. Olivas" },
+    // ── III Año ────────────────────────────────────────────
+    { f:"27/05/2026", tema:"Presentación de caso clínico",                                          anio:"III", dr:"Dra. Díaz" },
+    { f:"03/06/2026", tema:"Hernia discal cervical",                                                anio:"III", dr:"Dr. Cerrato" },
+    { f:"10/06/2026", tema:"Hernia discal dorsal",                                                  anio:"III", dr:"Dra. Díaz" },
+    { f:"17/06/2026", tema:"Hernia discal lumbar",                                                  anio:"III", dr:"Dr. Cerrato" },
+    { f:"24/06/2026", tema:"Estenosis cervical, dorsal y lumbar",                                   anio:"III", dr:"Dra. Díaz" },
+    { f:"01/07/2026", tema:"Espondilolistesis degenerativa lumbar",                                 anio:"III", dr:"Dr. Cerrato" },
+    { f:"08/07/2026", tema:"Mielopatía cervical degenerativa",                                      anio:"III", dr:"Dra. Díaz" },
+    { f:"15/07/2026", tema:"Revisión de un tema y artículos científicos",                           anio:"III", dr:"Dr. Cerrato" },
+    { f:"22/07/2026", tema:"Instrumentación posterior torácica y lumbar",                           anio:"III", dr:"Dra. Díaz" },
+    { f:"05/08/2026", tema:"Revisión de un tema y artículos científicos",                           anio:"III", dr:"Dr. Cerrato" },
+    { f:"02/09/2026", tema:"Investigación: estudio de cohortes",                                    anio:"III", dr:"Dra. Díaz" },
+    { f:"09/09/2026", tema:"Instrumentación cervical anterior",                                     anio:"III", dr:"Dra. Díaz" },
+    { f:"16/09/2026", tema:"PLIF, TLIF y ALIF",                                                     anio:"III", dr:"Dr. Cerrato" },
+    { f:"23/09/2026", tema:"Presentación de caso clínico",                                          anio:"III", dr:"" },
+    { f:"07/10/2026", tema:"Presentación de caso clínico",                                          anio:"III", dr:"Dra. Díaz" },
+    { f:"14/10/2026", tema:"Clasificación de deformidad espinal",                                   anio:"III", dr:"Dr. Cerrato" },
+    { f:"21/10/2026", tema:"Evaluación de alineación espinal",                                      anio:"III", dr:"Dra. Díaz" },
+    { f:"28/10/2026", tema:"Evaluación y tratamiento de deformidad cervical",                       anio:"III", dr:"Dr. Cerrato" },
+    { f:"04/11/2026", tema:"Evaluación y tratamiento de la escoliosis del adulto",                  anio:"III", dr:"Dra. Díaz" },
+    { f:"13/01/2027", tema:"Tumores benignos del esqueleto axial",                                  anio:"III", dr:"Dra. Díaz" },
+    { f:"20/01/2027", tema:"Tumores malignos primarios del esqueleto axial",                        anio:"III", dr:"Dr. Cerrato" },
+    { f:"27/01/2027", tema:"Tumores benignos intradurales extramedulares",                          anio:"III", dr:"Dra. Díaz" },
+    { f:"03/02/2027", tema:"Metástasis espinal",                                                    anio:"III", dr:"Dr. Cerrato" },
+    { f:"10/02/2027", tema:"Tumores malignos primarios",                                            anio:"III", dr:"Dra. Díaz" },
+    { f:"17/02/2027", tema:"Revisión de un tema y artículos científicos",                           anio:"III", dr:"Dr. Cerrato" },
+    { f:"24/02/2027", tema:"Revisión de un tema y artículos científicos",                           anio:"III", dr:"Dra. Díaz" },
+    // ── IV Año ─────────────────────────────────────────────
+    { f:"28/05/2026", tema:"Presentación de caso clínico",                                          anio:"IV",  dr:"Dr. Rayo" },
+    { f:"04/06/2026", tema:"Gliomas de bajo grado",                                                 anio:"IV",  dr:"Dr. Reynoso" },
+    { f:"11/06/2026", tema:"Gliomas malignos",                                                      anio:"IV",  dr:"Dra. Blandón" },
+    { f:"18/06/2026", tema:"Revisión de un tema y artículos científicos",                           anio:"IV",  dr:"Dr. Rayo" },
+    { f:"25/06/2026", tema:"Meduloblastomas en niños y adultos",                                    anio:"IV",  dr:"Dr. Reynoso" },
+    { f:"02/07/2026", tema:"Ependimomas intracraneales en niños y adultos",                         anio:"IV",  dr:"Dra. Blandón" },
+    { f:"09/07/2026", tema:"Metástasis cerebral",                                                   anio:"IV",  dr:"Dr. Rayo" },
+    { f:"16/07/2026", tema:"Meningiomas (no base de cráneo)",                                       anio:"IV",  dr:"Dr. Reynoso" },
+    { f:"23/07/2026", tema:"Revisión de un tema y artículos científicos",                           anio:"IV",  dr:"Dra. Blandón" },
+    { f:"30/07/2026", tema:"Revisión de un tema y artículos científicos",                           anio:"IV",  dr:"Dr. Reynoso" },
+    { f:"20/08/2026", tema:"Investigación: estudios de casos control",                              anio:"IV",  dr:"Dr. Reynoso" },
+    { f:"27/08/2026", tema:"Investigación: estudios descriptivos",                                  anio:"IV",  dr:"Dra. Blandón" },
+    { f:"03/09/2026", tema:"Schwannomas vestibulares",                                              anio:"IV",  dr:"Dr. Rayo" },
+    { f:"10/09/2026", tema:"Meningioma de base de cráneo",                                          anio:"IV",  dr:"Dra. Blandón" },
+    { f:"17/09/2026", tema:"Tumores de hipófisis",                                                  anio:"IV",  dr:"Dr. Reynoso" },
+    { f:"24/09/2026", tema:"Presentación de caso clínico",                                          anio:"IV",  dr:"Dr. Rayo" },
+    { f:"01/10/2026", tema:"Presentación de caso clínico",                                          anio:"IV",  dr:"Dra. Blandón" },
+    { f:"08/10/2026", tema:"Presentación de caso clínico",                                          anio:"IV",  dr:"Dr. Reynoso" },
+    { f:"15/10/2026", tema:"Investigación: protocolo y objetivos del estudio",                      anio:"IV",  dr:"Dr. Rayo" },
+    { f:"22/10/2026", tema:"Cordomas y condrosarcomas",                                             anio:"IV",  dr:"Dr. Rayo" },
+    { f:"05/11/2026", tema:"Craneofaringiomas",                                                     anio:"IV",  dr:"Dra. Blandón" },
+    { f:"14/01/2027", tema:"Evaluación de pacientes para cirugía de epilepsia",                     anio:"IV",  dr:"Dra. Blandón" },
+    { f:"21/01/2027", tema:"Lobectomía temporal anteromedial",                                      anio:"IV",  dr:"Dr. Reynoso" },
+    { f:"28/01/2027", tema:"Resecciones extratemporales en cirugía de epilepsia",                   anio:"IV",  dr:"Dr. Rayo" },
+    { f:"04/02/2027", tema:"Estimulación eléctrica para epilepsia (DBS)",                           anio:"IV",  dr:"Dra. Blandón" },
+    { f:"11/02/2027", tema:"Revisión de un tema y artículos científicos",                           anio:"IV",  dr:"Dr. Reynoso" },
+    { f:"18/02/2027", tema:"Cirugía para enfermedad de Parkinson",                                  anio:"IV",  dr:"Dr. Rayo" },
+    { f:"25/02/2027", tema:"Revisión de un tema y artículos científicos",                           anio:"IV",  dr:"Dra. Blandón" },
+    { f:"04/03/2027", tema:"Revisión de un tema y artículos científicos",                           anio:"IV",  dr:"Dr. Rayo" },
+    // ── V Año ──────────────────────────────────────────────
+    { f:"29/05/2026", tema:"Presentación de caso clínico",                                          anio:"V",   dr:"Dra. Membreño" },
+    { f:"12/06/2026", tema:"Manejo microquirúrgico y endovascular de MAV",                          anio:"V",   dr:"Dra. Abarca" },
+    { f:"19/06/2026", tema:"Investigación: variable de respuesta",                                  anio:"V",   dr:"Dra. Abarca" },
+    { f:"26/06/2026", tema:"Manejo microquirúrgico de aneurismas de carótida interna",              anio:"V",   dr:"Dra. Membreño" },
+    { f:"02/07/2026", tema:"Revisión de un tema y artículos científicos",                           anio:"V",   dr:"Dra. Abarca" },
+    { f:"09/07/2026", tema:"Investigación: población de estudio",                                   anio:"V",   dr:"Dra. Membreño" },
+    { f:"17/07/2026", tema:"Revisión de un tema y artículos científicos",                           anio:"V",   dr:"Dra. Membreño" },
+    { f:"24/07/2026", tema:"Manejo microquirúrgico de aneurismas de arteria comunicante anterior",  anio:"V",   dr:"Dra. Abarca" },
+    { f:"07/08/2026", tema:"Manejo microquirúrgico de aneurismas de arteria cerebral media",        anio:"V",   dr:"Dra. Membreño" },
+    { f:"04/09/2026", tema:"Endoscopia ventricular",                                                anio:"V",   dr:"Dra. Abarca" },
+    { f:"18/09/2026", tema:"Craneosinostosis no sindrómica",                                        anio:"V",   dr:"Dra. Membreño" },
+    { f:"25/09/2026", tema:"Presentación de caso clínico",                                          anio:"V",   dr:"Dra. Abarca" },
+    { f:"02/10/2026", tema:"Craneosinostosis sindrómica",                                           anio:"V",   dr:"Dra. Membreño" },
+    { f:"09/10/2026", tema:"Disrafismo espinal",                                                    anio:"V",   dr:"Dra. Abarca" },
+    { f:"16/10/2026", tema:"Revisión de un tema y artículos científicos",                           anio:"V",   dr:"Dra. Membreño" },
+    { f:"04/12/2026", tema:"Anatomía de base de cráneo anterior y media (Rhoton)",                  anio:"V",   dr:"Dra. Abarca" },
+    { f:"08/01/2027", tema:"Anatomía del ángulo pontocerebeloso (Rhoton)",                          anio:"V",   dr:"Dra. Membreño" },
 ];
+
+// ══════════════════════════════════════════════════════════
+// FECHAS IMPORTANTES (exámenes y presentaciones de avances)
+// ══════════════════════════════════════════════════════════
+const FECHAS_IMPORTANTES = [
+    // I Año
+    { fecha:"2026-07-27", desc:"Examen Módulo I", anio:"I", tipo:"examen" },
+    { fecha:"2026-10-19", desc:"Examen Módulo II", anio:"I", tipo:"examen" },
+    { fecha:"2027-01-04", desc:"Examen de Módulo III — Dra. Quintana", anio:"I", tipo:"examen" },
+    { fecha:"2027-02-22", desc:"Examen Módulo IV", anio:"I", tipo:"examen" },
+    { fecha:"2027-03-15", desc:"Examen Final", anio:"I", tipo:"examen" },
+    { fecha:"2027-03-29", desc:"Presentación de avances de investigación y artículo científico — Dra. Quintana", anio:"I", tipo:"presentacion" },
+    { fecha:"2027-04-13", desc:"Presentación de avances de investigación y artículo científico — Dr. Bobb", anio:"I", tipo:"presentacion" },
+    // II Año
+    { fecha:"2026-08-17", desc:"Examen Módulo I", anio:"II", tipo:"examen" },
+    { fecha:"2026-11-17", desc:"Presentación de avances de tesis y artículo científico — Dr. Cuadra", anio:"II", tipo:"presentacion" },
+    { fecha:"2026-11-24", desc:"Presentación de avances de tesis y artículo científico — Dra. Olivas", anio:"II", tipo:"presentacion" },
+    { fecha:"2026-12-15", desc:"Examen Módulo II", anio:"II", tipo:"examen" },
+    { fecha:"2027-03-12", desc:"Examen Final", anio:"II", tipo:"examen" },
+    { fecha:"2027-03-23", desc:"Presentación de avances de tesis y artículo científico — Dr. Cuadra", anio:"II", tipo:"presentacion" },
+    { fecha:"2027-03-30", desc:"Presentación de avances de tesis y artículo científico — Dra. Olivas", anio:"II", tipo:"presentacion" },
+    // III Año
+    { fecha:"2026-08-19", desc:"Examen Módulo I", anio:"III", tipo:"examen" },
+    { fecha:"2026-11-11", desc:"Presentación de avances de tesis y artículo científico — Dr. Cerrato", anio:"III", tipo:"presentacion" },
+    { fecha:"2026-11-18", desc:"Presentación de avances de tesis y artículo científico — Dra. Díaz", anio:"III", tipo:"presentacion" },
+    { fecha:"2026-12-09", desc:"Examen Módulo II", anio:"III", tipo:"examen" },
+    { fecha:"2027-03-10", desc:"Examen Módulo III", anio:"III", tipo:"examen" },
+    { fecha:"2027-04-07", desc:"Presentación de avances de tesis y artículo científico — Dr. Cerrato", anio:"III", tipo:"presentacion" },
+    { fecha:"2027-04-14", desc:"Presentación de avances de tesis y artículo científico — Dra. Díaz", anio:"III", tipo:"presentacion" },
+    // IV Año
+    { fecha:"2026-11-19", desc:"Presentación de avances de tesis y artículo científico — Dra. Blandón", anio:"IV", tipo:"presentacion" },
+    { fecha:"2026-11-26", desc:"Presentación de avances de tesis y artículo científico — Dr. Rayo", anio:"IV", tipo:"presentacion" },
+    { fecha:"2026-12-03", desc:"Presentación de avances de tesis y artículo científico — Dr. Reynoso", anio:"IV", tipo:"presentacion" },
+    { fecha:"2026-12-10", desc:"Examen Módulo II", anio:"IV", tipo:"examen" },
+    { fecha:"2027-03-18", desc:"Examen Módulo III", anio:"IV", tipo:"examen" },
+    { fecha:"2027-04-01", desc:"Presentación de avances de tesis y artículo científico — Dra. Blandón", anio:"IV", tipo:"presentacion" },
+    { fecha:"2027-04-08", desc:"Presentación de avances de tesis y artículo científico — Dr. Reynoso", anio:"IV", tipo:"presentacion" },
+    { fecha:"2027-04-15", desc:"Presentación de avances de tesis y artículo científico — Dr. Rayo", anio:"IV", tipo:"presentacion" },
+    // V Año
+    { fecha:"2026-08-27", desc:"Examen Módulo I", anio:"V", tipo:"examen" },
+    { fecha:"2026-10-23", desc:"Presentación de avances de tesis y artículo científico — Dra. Abarca", anio:"V", tipo:"presentacion" },
+    { fecha:"2026-10-30", desc:"Presentación de avances de tesis y artículo científico — Dra. Membreño", anio:"V", tipo:"presentacion" },
+    { fecha:"2026-11-13", desc:"Examen Módulo II", anio:"V", tipo:"examen" },
+    { fecha:"2027-02-05", desc:"Examen Módulo III", anio:"V", tipo:"examen" },
+    { fecha:"2027-02-19", desc:"Examen de Grado", anio:"V", tipo:"examen" },
+];
+
+const ANIO_COLORS = {
+    "I":   { border:"#818cf8", bg:"#eef2ff", badge:"background:#eef2ff;color:#3730a3;", text:"#3730a3" },
+    "II":  { border:"#a78bfa", bg:"#f5f3ff", badge:"background:#f5f3ff;color:#5b21b6;", text:"#5b21b6" },
+    "III": { border:"#60a5fa", bg:"#eff6ff", badge:"background:#eff6ff;color:#1d4ed8;", text:"#1d4ed8" },
+    "IV":  { border:"#34d399", bg:"#ecfdf5", badge:"background:#ecfdf5;color:#065f46;", text:"#065f46" },
+    "V":   { border:"#f87171", bg:"#fef2f2", badge:"background:#fef2f2;color:#991b1b;", text:"#991b1b" },
+};
+
+const MESES = ["Ene","Feb","Mar","Abr","May","Jun","Jul","Ago","Sep","Oct","Nov","Dic"];
+const MESES_LARGO = ["Enero","Febrero","Marzo","Abril","Mayo","Junio","Julio","Agosto","Septiembre","Octubre","Noviembre","Diciembre"];
 
 function parseFecha(str) {
     if (!str) return null;
     str = String(str).trim();
     if (str.includes('/')) { const [d,m,y]=str.split('/'); return new Date(+y,+m-1,+d); }
+    if (str.includes('-') && str.length === 10) { const [y,m,d]=str.split('-'); return new Date(+y,+m-1,+d); }
     return new Date(str);
 }
 
+function hoyMedianoche() {
+    const h = new Date(); h.setHours(0,0,0,0); return h;
+}
+
+// ──────────────────────────────────────────────────────────
+// CLASES: helpers
+// ──────────────────────────────────────────────────────────
+function esEditable(tema) {
+    const t = tema.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'');
+    return t.includes('presentacion de caso') || (t.includes('revision') && t.includes('articulo'));
+}
+
+function guardarTemaManual(key, value, fecha, anio, tipo) {
+    const v = value.trim();
+    if (v) { localStorage.setItem(key, v); _temasCache[key] = v; }
+    else    { localStorage.removeItem(key); delete _temasCache[key]; }
+    const params = new URLSearchParams({ action:'saveTema', hoja:'Tema_de_residentes', fecha, anio, tipo, tema: v });
+    fetch(`${URL_SCRIPT}?${params.toString()}`, { mode:'no-cors' }).catch(() => {});
+}
+
+// Guarda desde el botón explícito con feedback visual
+function guardarTemaDesdeBoton(inputId, key, fecha, anio, tipo, estadoId) {
+    const input    = document.getElementById(inputId);
+    const estadoEl = document.getElementById(estadoId);
+    if (!input) return;
+    const v = input.value.trim();
+
+    // Caché local inmediato
+    if (v) { localStorage.setItem(key, v); _temasCache[key] = v; }
+    else    { localStorage.removeItem(key); delete _temasCache[key]; }
+
+    estadoEl.textContent = 'Guardando…';
+    estadoEl.style.color = '#6366f1';
+
+    // Envía a Google Sheets → hoja Evaluaciones, pestaña Tema_de_residentes
+    const params = new URLSearchParams({ action:'saveTema', hoja:'Tema_de_residentes', fecha, anio, tipo, tema: v });
+    fetch(`${URL_SCRIPT}?${params.toString()}`, { mode:'no-cors' })
+        .then(() => {
+            estadoEl.textContent = '✓ Guardado en Sheets';
+            estadoEl.style.color = '#10b981';
+            setTimeout(() => { estadoEl.textContent = ''; }, 3500);
+        })
+        .catch(() => {
+            estadoEl.textContent = '⚠️ Error de red';
+            estadoEl.style.color = '#ef4444';
+        });
+}
+
+function scrollClaseCarousel(dir) {
+    const c = document.getElementById('claseCarousel');
+    c.scrollBy({ left: dir * 230, behavior:'smooth' });
+}
+
+function renderClases() {
+    const filtroAnio = document.getElementById('filtroClaseAnio').value;
+    const filtroMes  = document.getElementById('filtroClaseMes').value;
+    const hoy = hoyMedianoche();
+
+    let lista = CLASES.filter(c => {
+        const f = parseFecha(c.f);
+        const okAnio = !filtroAnio || c.anio === filtroAnio;
+        const okMes  = filtroMes === '' || f.getMonth() === parseInt(filtroMes);
+        return okAnio && okMes;
+    }).sort((a,b) => parseFecha(a.f) - parseFecha(b.f));
+
+    const carousel = document.getElementById('claseCarousel');
+    const vacio    = document.getElementById('claseVacio');
+    const contador = document.getElementById('claseContador');
+
+    if (lista.length === 0) {
+        carousel.innerHTML = '';
+        vacio.classList.remove('hidden');
+        contador.textContent = '';
+        return;
+    }
+    vacio.classList.add('hidden');
+    contador.textContent = lista.length + ' clase' + (lista.length !== 1 ? 's' : '');
+
+    // Determinar índice de hoy o próxima futura
+    let inicialIdx = 0;
+    let nearFuture = -1;
+    for (let i = 0; i < lista.length; i++) {
+        const f = parseFecha(lista[i].f);
+        if (f.getTime() === hoy.getTime()) { inicialIdx = i; break; }
+        if (f > hoy && nearFuture === -1) nearFuture = i;
+    }
+    if (nearFuture !== -1 && parseFecha(lista[inicialIdx].f).getTime() !== hoy.getTime()) inicialIdx = nearFuture;
+
+    carousel.innerHTML = lista.map((c, i) => {
+        const f = parseFecha(c.f);
+        const esHoy   = f.getTime() === hoy.getTime();
+        const pasada  = f < hoy;
+        const editable = esEditable(c.tema);
+        const localKey = 'manual_tema_' + c.anio + '_' + c.f;
+        const guardado = getTemaGuardado(localKey);
+        const col = ANIO_COLORS[c.anio] || ANIO_COLORS['I'];
+
+        return `<div class="clase-card ${esHoy ? 'clase-card-hoy' : ''} ${pasada && !esHoy ? 'clase-card-pasada' : ''}"
+                     id="clase-card-${i}"
+                     style="border-color:${col.border};background:${esHoy ? '#fff' : col.bg};">
+            ${esHoy ? '<div style="position:absolute;top:8px;right:8px;background:#4f46e5;color:#fff;font-size:9px;font-weight:800;padding:2px 8px;border-radius:99px;letter-spacing:.05em;">HOY</div>' : ''}
+            ${pasada && !esHoy ? '<div style="position:absolute;top:8px;right:8px;background:#94a3b8;color:#fff;font-size:9px;font-weight:700;padding:2px 6px;border-radius:99px;">Pasada</div>' : ''}
+            <div style="margin-bottom:5px;display:flex;align-items:baseline;gap:4px;">
+                <span style="font-size:24px;font-weight:900;color:#1e293b;line-height:1;">${f.getDate()}</span>
+                <span style="font-size:12px;font-weight:700;color:#64748b;">${MESES[f.getMonth()]} ${f.getFullYear()}</span>
+            </div>
+            <div style="font-size:10px;font-weight:800;color:${col.text};text-transform:uppercase;letter-spacing:.06em;margin-bottom:5px;${col.badge}padding:2px 7px;border-radius:6px;display:inline-block;">${c.anio} Año</div>
+            <p style="font-size:12px;font-weight:600;color:#334155;line-height:1.4;margin-top:5px;margin-bottom:4px;">${c.tema}</p>
+            ${c.dr ? `<p style="font-size:10px;color:#6366f1;font-weight:600;margin-bottom:${editable?'6px':'0'};display:flex;align-items:center;gap:3px;"><span style="opacity:.7;">👨‍⚕️</span>${c.dr}</p>` : ''}
+            ${editable ? `<div style="margin-top:6px;">
+                <div style="font-size:10px;color:#6366f1;font-weight:700;margin-bottom:4px;">✏️ Tema a desarrollar:</div>
+                <input type="text" id="inp-${i}" placeholder="Escribe el tema específico…" value="${guardado.replace(/"/g,'&quot;')}"
+                    style="width:100%;font-size:11px;padding:5px 8px;border:1.5px solid #c7d2fe;border-radius:7px;outline:none;background:#fff;color:#334155;box-sizing:border-box;margin-bottom:5px;">
+                <div style="display:flex;align-items:center;gap:6px;">
+                    <button
+                        onclick="guardarTemaDesdeBoton('inp-${i}','${localKey}','${c.f}','${c.anio}','${c.tema.toLowerCase().includes('caso') ? 'caso' : 'revision'}','estado-${i}')"
+                        style="font-size:10px;font-weight:700;background:#4f46e5;color:#fff;border:none;border-radius:6px;padding:4px 11px;cursor:pointer;flex-shrink:0;letter-spacing:.02em;">
+                        💾 Guardar
+                    </button>
+                    <span id="estado-${i}" style="font-size:10px;color:#64748b;font-weight:600;"></span>
+                </div>
+            </div>` : ''}
+        </div>`;
+    }).join('');
+
+    // Scroll a la clase de hoy / próxima
+    setTimeout(() => {
+        const card = document.getElementById('clase-card-' + inicialIdx);
+        if (card) card.scrollIntoView({ behavior:'smooth', block:'nearest', inline:'start' });
+    }, 80);
+}
+
+// ──────────────────────────────────────────────────────────
+// FECHAS IMPORTANTES
+// ──────────────────────────────────────────────────────────
+function svgTriangulo(color, borderColor) {
+    return `<svg width="22" height="20" viewBox="0 0 22 20" style="flex-shrink:0;">
+        <polygon points="11,1.5 20.5,18.5 1.5,18.5" fill="${color}" stroke="${borderColor}" stroke-width="1.5"/>
+        <text x="11" y="15.5" text-anchor="middle" font-size="9" font-weight="900" fill="white">!</text>
+    </svg>`;
+}
+
+function renderFechasImportantes() {
+    const hoy = hoyMedianoche();
+
+    const futuras = FECHAS_IMPORTANTES
+        .map(f => ({ ...f, dateObj: new Date(f.fecha + 'T00:00:00') }))
+        .sort((a,b) => a.dateObj - b.dateObj);
+
+    const lista = document.getElementById('listFechasImportantes');
+    const vacio  = document.getElementById('fechasVacio');
+
+    if (futuras.length === 0) {
+        lista.innerHTML = '';
+        vacio.classList.remove('hidden');
+        return;
+    }
+    vacio.classList.add('hidden');
+
+    lista.innerHTML = futuras.map(f => {
+        const diffMs   = f.dateObj - hoy;
+        const diffDias = Math.round(diffMs / 86400000);
+        const pasada   = diffDias < 0;
+
+        let warning = '<div style="width:22px;flex-shrink:0;"></div>';
+        if (!pasada) {
+            if (diffDias <= 7)  warning = svgTriangulo('#ef4444','#dc2626');
+            else if (diffDias <= 21) warning = svgTriangulo('#f59e0b','#d97706');
+        }
+
+        const col = ANIO_COLORS[f.anio] || ANIO_COLORS['I'];
+
+        let diasTexto, diasColor;
+        if (pasada) {
+            diasTexto  = 'Hace ' + Math.abs(diffDias) + ' días';
+            diasColor  = '#94a3b8';
+        } else if (diffDias === 0) {
+            diasTexto  = '¡Hoy!';
+            diasColor  = '#7c3aed';
+        } else if (diffDias === 1) {
+            diasTexto  = 'Mañana';
+            diasColor  = '#dc2626';
+        } else if (diffDias <= 7) {
+            diasTexto  = diffDias + ' días';
+            diasColor  = '#dc2626';
+        } else if (diffDias <= 21) {
+            diasTexto  = diffDias + ' días';
+            diasColor  = '#d97706';
+        } else {
+            diasTexto  = diffDias + ' días';
+            diasColor  = '#64748b';
+        }
+
+        const esTipoExamen = f.tipo === 'examen';
+        const tipoLabel    = esTipoExamen
+            ? '<span style="background:#fef3c7;color:#92400e;font-size:9px;font-weight:800;padding:1px 6px;border-radius:5px;margin-left:4px;">EXAMEN</span>'
+            : '<span style="background:#ede9fe;color:#5b21b6;font-size:9px;font-weight:800;padding:1px 6px;border-radius:5px;margin-left:4px;">PRESENTACIÓN</span>';
+
+        const fechaStr = f.dateObj.getDate() + ' ' + MESES[f.dateObj.getMonth()] + ' ' + f.dateObj.getFullYear();
+
+        return `<div style="padding:12px 20px;display:flex;align-items:center;gap:12px;${pasada?'opacity:.5;':''}">
+            ${warning}
+            <div style="flex:1;min-width:0;">
+                <div style="display:flex;align-items:center;gap:4px;flex-wrap:wrap;margin-bottom:2px;">
+                    <span style="font-size:10px;font-weight:800;${col.badge}padding:2px 7px;border-radius:5px;">${f.anio} Año</span>
+                    ${tipoLabel}
+                    <span style="font-size:11px;color:#94a3b8;font-weight:500;margin-left:2px;">${fechaStr}</span>
+                </div>
+                <p style="font-size:13px;font-weight:600;color:#1e293b;line-height:1.35;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${f.desc}</p>
+            </div>
+            <div style="text-align:right;flex-shrink:0;">
+                <p style="font-size:13px;font-weight:800;color:${diasColor};white-space:nowrap;">${diasTexto}</p>
+                ${!pasada && diffDias > 0 ? '<p style="font-size:10px;color:#94a3b8;margin-top:1px;">restantes</p>' : ''}
+            </div>
+        </div>`;
+    }).join('');
+
+    // Scroll a la primera fecha futura
+    const items = lista.querySelectorAll('div[style]');
+    // Find first non-past item — approximate: scroll top to show upcoming
+    const hoyItems = Array.from(lista.children).filter((_,i) => {
+        const d = futuras[i];
+        return d && new Date(d.fecha + 'T00:00:00') >= hoy;
+    });
+    if (hoyItems.length > 0) {
+        setTimeout(() => hoyItems[0].scrollIntoView({ block:'start' }), 100);
+    }
+}
+
+// Scroll inicial a la primera fecha futura al cargar
+function scrollFechasAHoy() {
+    const hoy = hoyMedianoche();
+    const lista = document.getElementById('listFechasImportantes');
+    const children = Array.from(lista.children);
+    const idx = FECHAS_IMPORTANTES
+        .map(f => new Date(f.fecha + 'T00:00:00'))
+        .sort((a,b) => a-b)
+        .findIndex(d => d >= hoy);
+    if (idx > 0 && children[idx]) {
+        lista.scrollTop = children[idx].offsetTop - lista.offsetTop;
+    }
+}
+
+// ──────────────────────────────────────────────────────────
+// Resto de funciones originales
+// ──────────────────────────────────────────────────────────
 function getModulo(fechaStr) {
     const d = parseFecha(fechaStr);
     if (!d) return null;
@@ -509,9 +931,6 @@ function renderNotas(residente, filas) {
     chartBarrasInst=new Chart(document.getElementById('chartBarras'),{type:'bar',data:{labels:labels.map(l=>l.length>16?l.slice(0,14)+'…':l),datasets:[{label:'%',data:promedios,backgroundColor:bgColors,borderRadius:8,borderSkipped:false}]},options:{responsive:true,plugins:{legend:{display:false}},scales:{y:{min:0,max:100,ticks:{callback:v=>v+'%'}},x:{grid:{display:false}}}}});
     chartRadarInst=new Chart(document.getElementById('chartRadar'),{type:'radar',data:{labels:labels.map(l=>l.length>14?l.slice(0,12)+'…':l),datasets:[{label:'Promedio',data:promedios,backgroundColor:'rgba(99,102,241,0.15)',borderColor:'#6366f1',pointBackgroundColor:bgColors,pointRadius:4,borderWidth:2}]},options:{responsive:true,plugins:{legend:{display:false}},scales:{r:{min:0,max:100,ticks:{stepSize:20,callback:v=>v+'%',font:{size:10}},pointLabels:{font:{size:10}}}}}});
 
-    // ═══════════════════════════════════════════════════════════
-    // MOTOR DE CONSOLIDACIÓN DIARIA ANÓNIMA CON COMENTARIOS
-    // ═══════════════════════════════════════════════════════════
     const gruposDiarios = {};
     filas.forEach(r => {
         const clave = `${r.fecha}||${r._comp}`;
@@ -529,32 +948,28 @@ function renderNotas(residente, filas) {
                 maxPosible: r._comp === "Clases Programadas" ? 30 : (r._comp === "Casos Clínicos y Artículos" ? 20 : 20)
             };
         }
-        
         gruposDiarios[clave].evaluacionesCount++;
         gruposDiarios[clave].sumaTotal += r._pct;
-
         const txtComentario = (r.comentarios || r.observaciones || "").trim();
         if(txtComentario && txtComentario.toLowerCase() !== "ninguno" && txtComentario.toLowerCase() !== "ninguna") {
             gruposDiarios[clave].comentariosList.push(txtComentario);
         }
-
         let c1 = parseInt(r.criterio1 || r.score1 || r.aspecto1);
         let c2 = parseInt(r.criterio2 || r.score2 || r.aspecto2);
         let c3 = parseInt(r.criterio3 || r.score3 || 0);
-
-        if (!isNaN(c1)) { 
+        if (!isNaN(c1)) {
             let maxC1 = r._comp === "Clases Programadas" ? 10 : (r._comp === "Casos Clínicos y Artículos" ? 7 : 40);
             if (r._comp === "Sesiones Diarias") maxC1 = 10;
-            gruposDiarios[clave].c1Suma += (c1 / maxC1) * 100; gruposDiarios[clave].c1Count++; 
+            gruposDiarios[clave].c1Suma += (c1 / maxC1) * 100; gruposDiarios[clave].c1Count++;
         }
-        if (!isNaN(c2)) { 
+        if (!isNaN(c2)) {
             let maxC2 = r._comp === "Clases Programadas" ? 10 : (r._comp === "Casos Clínicos y Artículos" ? 6 : 30);
             if (r._comp === "Sesiones Diarias") maxC2 = 10;
-            gruposDiarios[clave].c2Suma += (c2 / maxC2) * 100; gruposDiarios[clave].c2Count++; 
+            gruposDiarios[clave].c2Suma += (c2 / maxC2) * 100; gruposDiarios[clave].c2Count++;
         }
-        if (!isNaN(c3) && r._comp !== "Sesiones Diarias") { 
+        if (!isNaN(c3) && r._comp !== "Sesiones Diarias") {
             let maxC3 = r._comp === "Casos Clínicos y Artículos" ? 7 : 30;
-            gruposDiarios[clave].c3Suma += (c3 / maxC3) * 100; gruposDiarios[clave].c3Count++; 
+            gruposDiarios[clave].c3Suma += (c3 / maxC3) * 100; gruposDiarios[clave].c3Count++;
         }
     });
 
@@ -565,25 +980,20 @@ function renderNotas(residente, filas) {
         contenedorHTML.innerHTML = Object.values(gruposDiarios).sort((a,b) => parseFecha(b.fecha) - parseFecha(a.fecha)).map((g, index) => {
             const promGlobal = Math.round(g.sumaTotal / g.evaluacionesCount);
             const notaEscala = Math.round((promGlobal * g.maxPosible) / 100);
-            
             const promC1 = g.c1Count > 0 ? Math.round(g.c1Suma / g.c1Count) : null;
             const promC2 = g.c2Count > 0 ? Math.round(g.c2Suma / g.c2Count) : null;
             const promC3 = g.c3Count > 0 ? Math.round(g.c3Suma / g.c3Count) : null;
-
             let aspectoA = g.componente === "Sesiones Diarias" ? "Profundidad y Calidad del Conocimiento Neuroquirúrgico" : "Estructura y Organización de la Presentación";
             let aspectoB = g.componente === "Sesiones Diarias" ? "Análisis Crítico y Contribución a la Estrategia" : "Literatura Científica Variada y Pertinente";
             let aspectoC = g.componente === "Práctica Quirúrgica" ? "Comportamiento adecuado en Quirófano" : "Dominio del Tema y Manejo de Preguntas";
-
             if (g.componente === "Práctica Quirúrgica") {
                 aspectoA = "Adecuada Preparación Académica para el Caso";
                 aspectoB = "Habilidad Técnica y Destreza con Instrumentos";
             }
-
             const colorBadge = promGlobal >= 70 ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : 'bg-red-50 text-red-700 border-red-200';
-
             return `
             <div class="border border-slate-200 rounded-xl overflow-hidden shadow-sm bg-slate-50/50">
-                <button onclick="document.getElementById('drop-${index}').classList.toggle('hidden')" 
+                <button onclick="document.getElementById('drop-${index}').classList.toggle('hidden')"
                     class="w-full text-left px-4 py-3.5 bg-white hover:bg-slate-50 transition flex items-center justify-between gap-3 flex-wrap">
                     <div class="min-w-0 flex-1">
                         <div class="flex items-center gap-2 flex-wrap mb-1">
@@ -601,55 +1011,19 @@ function renderNotas(residente, filas) {
                         <svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
                     </div>
                 </button>
-                
                 <div id="drop-${index}" class="hidden p-4 bg-white border-t border-slate-200 space-y-4 text-sm text-slate-700">
                     <p class="text-xs font-bold uppercase tracking-wider text-slate-400 border-b border-slate-100 pb-1">Promedio de Criterios Individuales</p>
-                    
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
-                        ${promC1 !== null ? `
-                        <div class="space-y-1">
-                            <div class="flex justify-between text-xs font-semibold text-slate-600">
-                                <span class="truncate pr-2">a) ${aspectoA}</span>
-                                <span class="${promC1 >= 70 ? 'text-emerald-600' : 'text-red-500'}">${promC1}%</span>
-                            </div>
-                            <div class="w-full bg-slate-100 rounded-full h-2 overflow-hidden">
-                                <div class="h-2 rounded-full ${promC1 >= 70 ? 'bg-emerald-500' : 'bg-red-400'}" style="width: ${promC1}%"></div>
-                            </div>
-                        </div>` : ''}
-
-                        ${promC2 !== null ? `
-                        <div class="space-y-1">
-                            <div class="flex justify-between text-xs font-semibold text-slate-600">
-                                <span class="truncate pr-2">b) ${aspectoB}</span>
-                                <span class="${promC2 >= 70 ? 'text-emerald-600' : 'text-red-500'}">${promC2}%</span>
-                            </div>
-                            <div class="w-full bg-slate-100 rounded-full h-2 overflow-hidden">
-                                <div class="h-2 rounded-full ${promC2 >= 70 ? 'bg-emerald-500' : 'bg-red-400'}" style="width: ${promC2}%"></div>
-                            </div>
-                        </div>` : ''}
-
-                        ${promC3 !== null ? `
-                        <div class="space-y-1 sm:col-span-2">
-                            <div class="flex justify-between text-xs font-semibold text-slate-600">
-                                <span class="truncate pr-2">c) ${aspectoC}</span>
-                                <span class="${promC3 >= 70 ? 'text-emerald-600' : 'text-red-500'}">${promC3}%</span>
-                            </div>
-                            <div class="w-full bg-slate-100 rounded-full h-2 overflow-hidden">
-                                <div class="h-2 rounded-full ${promC3 >= 70 ? 'bg-emerald-500' : 'bg-red-400'}" style="width: ${promC3}%"></div>
-                            </div>
-                        </div>` : ''}
+                        ${promC1 !== null ? `<div class="space-y-1"><div class="flex justify-between text-xs font-semibold text-slate-600"><span class="truncate pr-2">a) ${aspectoA}</span><span class="${promC1 >= 70 ? 'text-emerald-600' : 'text-red-500'}">${promC1}%</span></div><div class="w-full bg-slate-100 rounded-full h-2 overflow-hidden"><div class="h-2 rounded-full ${promC1 >= 70 ? 'bg-emerald-500' : 'bg-red-400'}" style="width: ${promC1}%"></div></div></div>` : ''}
+                        ${promC2 !== null ? `<div class="space-y-1"><div class="flex justify-between text-xs font-semibold text-slate-600"><span class="truncate pr-2">b) ${aspectoB}</span><span class="${promC2 >= 70 ? 'text-emerald-600' : 'text-red-500'}">${promC2}%</span></div><div class="w-full bg-slate-100 rounded-full h-2 overflow-hidden"><div class="h-2 rounded-full ${promC2 >= 70 ? 'bg-emerald-500' : 'bg-red-400'}" style="width: ${promC2}%"></div></div></div>` : ''}
+                        ${promC3 !== null ? `<div class="space-y-1 sm:col-span-2"><div class="flex justify-between text-xs font-semibold text-slate-600"><span class="truncate pr-2">c) ${aspectoC}</span><span class="${promC3 >= 70 ? 'text-emerald-600' : 'text-red-500'}">${promC3}%</span></div><div class="w-full bg-slate-100 rounded-full h-2 overflow-hidden"><div class="h-2 rounded-full ${promC3 >= 70 ? 'bg-emerald-500' : 'bg-red-400'}" style="width: ${promC3}%"></div></div></div>` : ''}
                     </div>
-
                     <div class="pt-2">
                         <p class="text-xs font-bold uppercase tracking-wider text-slate-400 border-b border-slate-100 pb-1 mb-2">Retroalimentación docente</p>
-                        ${g.comentariosList.length === 0 
+                        ${g.comentariosList.length === 0
                             ? `<p class="text-xs text-slate-400 italic">No se registraron comentarios cualitativos para esta fecha.</p>`
-                            : `<ul class="list-disc pl-4 space-y-1.5 text-xs text-slate-600 font-medium">
-                                 ${g.comentariosList.map(c => `<li>"${c}"</li>`).join('')}
-                               </ul>`
-                        }
+                            : `<ul class="list-disc pl-4 space-y-1.5 text-xs text-slate-600 font-medium">${g.comentariosList.map(c => `<li>"${c}"</li>`).join('')}</ul>`}
                     </div>
-
                     <div class="bg-indigo-50/50 rounded-xl p-3 border border-indigo-100 flex justify-between items-center mt-1">
                         <span class="text-xs font-bold text-indigo-950 uppercase tracking-wide">Promedio Global Acumulado:</span>
                         <span class="text-sm font-black ${promGlobal >= 70 ? 'text-emerald-600' : 'text-red-600'}">${promGlobal}%</span>
@@ -663,7 +1037,7 @@ function renderNotas(residente, filas) {
     filas.forEach(r=>{const m=r._modulo;if(!modMap[m])modMap[m]=[];modMap[m].push(r);});
     document.getElementById('barrasModulo').innerHTML=Object.keys(modMap).sort().map(m=>{
         const rows=modMap[m]; const prom=Math.round(rows.reduce((s,r)=>s+r._pct,0)/rows.length); const ap=prom>=70;
-        return `<div><div class="flex justify-between items-center mb-1"><span class="text-sm font-semibold text-slate-700">Módulo ${m}</span><span class="text-sm font-bold ${ap?'text-emerald-600':'text-red-500'}">${prom}% — ${ap?'Aprobado':'Reprobado'}</span></div><div class="w-full bg-slate-200 rounded-full h-3"><div class="h-3 rounded-full ${colorBarra(prom)}" style="width:${prom}%"></div></div><p class="text-xs text-slate-400 mt-0.5">${rows.length} evaluación${rows.length!==1?'es':''}</p></div>`;
+        return `<div><div class="flex justify-between items-center mb-1"><span class="text-sm font-semibold text-slate-700">Módulo ${m}</span><span class="text-sm font-bold ${ap?'text-emerald-600':'text-red-500'}">${prom}% — ${ap?'Aprobado':'Reprobado'}</span></div><div class="w-full bg-slate-200 rounded-full h-3"><div class="h-3 rounded-full transition-all ${colorBarra(prom)}" style="width:${prom}%"></div></div><p class="text-xs text-slate-400 mt-0.5">${rows.length} evaluación${rows.length!==1?'es':''}</p></div>`;
     }).join('');
 
     document.getElementById('secNotas').classList.remove('hidden');
@@ -835,6 +1209,16 @@ function renderPanelResidente(residente, anio, evalRes) {
         </div>
     </div>`;
 }
+
+// ── INIT ──────────────────────────────────────────────────
+document.addEventListener('DOMContentLoaded', function() {
+    // Render inmediato con datos de localStorage (respuesta rápida)
+    renderClases();
+    renderFechasImportantes();
+    setTimeout(scrollFechasAHoy, 200);
+    // Luego actualiza desde Google Sheets y re-renderiza si hay cambios
+    fetchTemas().then(() => renderClases());
+});
 </script>
 </body>
 </html>
