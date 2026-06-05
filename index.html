@@ -3,18 +3,73 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Plataforma del Residente — Neurocirugía</title>
+    <title>Dashboard del Residente — Neurocirugía</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+    <!-- Google Identity Services -->
+    <script src="https://accounts.google.com/gsi/client" async></script>
 </head>
-<body class="bg-slate-100 min-h-screen py-6 px-3">
+<body class="bg-slate-100 min-h-screen">
 
+<!-- ══════════════════════════════════════════════════════════════════ -->
+<!-- PANEL DE LOGIN (visible hasta autenticarse)                      -->
+<!-- ══════════════════════════════════════════════════════════════════ -->
+<div id="loginPanel" class="min-h-screen flex items-center justify-center py-10 px-4">
+    <div class="bg-white rounded-2xl shadow-xl border border-slate-200 p-8 max-w-sm w-full text-center">
+        <div class="bg-gradient-to-r from-indigo-900 to-blue-900 text-white rounded-xl px-5 py-6 mb-6">
+            <div class="text-3xl mb-2">🧠</div>
+            <h1 class="text-xl font-black leading-tight">Dashboard del Residente</h1>
+            <p class="text-indigo-200 text-xs mt-1">Neurocirugía — Acceso seguro</p>
+        </div>
+        <p class="text-slate-600 text-sm mb-6 leading-relaxed">Inicia sesión con tu cuenta de Google institucional para acceder a tu información académica.</p>
+        <!-- Botón de Google Sign-In (se renderiza automáticamente) -->
+        <div id="g_id_onload"
+             data-client_id="REEMPLAZA_CON_TU_GOOGLE_CLIENT_ID"
+             data-callback="handleCredentialResponse"
+             data-auto_select="true"
+             data-cancel_on_tap_outside="false">
+        </div>
+        <div class="g_id_signin flex justify-center"
+             data-type="standard"
+             data-theme="filled_blue"
+             data-size="large"
+             data-locale="es"
+             data-text="signin_with"
+             data-shape="rectangular">
+        </div>
+        <p id="loginError" class="hidden mt-4 text-xs text-red-600 font-semibold bg-red-50 border border-red-200 rounded-xl p-3"></p>
+        <p class="text-xs text-slate-400 mt-5">Solo cuentas autorizadas del programa pueden acceder.</p>
+    </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════════════ -->
+<!-- CONTENIDO PRINCIPAL (oculto hasta autenticarse)                  -->
+<!-- ══════════════════════════════════════════════════════════════════ -->
+<div id="mainContent" class="hidden py-6 px-3">
 <div class="max-w-4xl mx-auto space-y-5">
 
     <!-- CABECERA -->
-    <div class="bg-gradient-to-r from-indigo-900 to-blue-900 text-white rounded-2xl px-6 py-6 shadow-lg">
-        <h1 class="text-2xl font-black leading-tight">Dashboard del Residente</h1>
-        <p class="text-indigo-200 text-sm mt-1">Seguimiento académico — Neurocirugía</p>
+    <div class="bg-gradient-to-r from-indigo-900 to-blue-900 text-white rounded-2xl px-6 py-5 shadow-lg">
+        <div class="flex items-start justify-between gap-3 flex-wrap">
+            <div>
+                <h1 class="text-2xl font-black leading-tight">Dashboard del Residente</h1>
+                <p class="text-indigo-200 text-sm mt-0.5">Seguimiento académico — Neurocirugía</p>
+            </div>
+            <div class="flex flex-col items-end gap-2">
+                <div class="flex items-center gap-2 bg-white/10 border border-white/20 rounded-xl px-3 py-2">
+                    <span class="text-lg">👤</span>
+                    <div class="text-right">
+                        <p id="userDisplayName" class="text-xs font-bold text-white leading-tight"></p>
+                        <p id="userDisplayEmail" class="text-xs text-indigo-200 leading-tight"></p>
+                    </div>
+                </div>
+                <button onclick="cerrarSesion()"
+                    class="text-xs text-indigo-200 hover:text-white transition flex items-center gap-1">
+                    <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg>
+                    Cerrar sesión
+                </button>
+            </div>
+        </div>
     </div>
 
     <!-- ══════════════════════════════════════════════════════════ -->
@@ -249,7 +304,8 @@
         <div id="secPendientes" class="hidden space-y-5"></div>
     </div>
 
-</div>
+</div><!-- /max-w-4xl -->
+</div><!-- /mainContent -->
 
 <style>
 .tab-activo   { background:#4338ca; color:#fff; }
@@ -265,6 +321,153 @@
 </style>
 
 <script>
+// ═══════════════════════════════════════════════════════════════════════
+// AUTENTICACIÓN GOOGLE — mapa de correos autorizados
+// ═══════════════════════════════════════════════════════════════════════
+
+// Correo del docente con acceso total
+const CORREO_DOCENTE = 'pereralumbi@gmail.com';
+
+// Mapa correo → nombre completo de residente (en minúsculas para comparar)
+const CORREO_RESIDENTE = {
+    'jlcerrato9@gmail.com':    'José Luis Cerrato Lemus',
+    'axlyjimenez2@gmail.com':  'Axly Ivania Olivas Jiménez',
+    'angelrayo93@gmail.com':   'Angel Benigno Rayo Bravo',
+    'marthaabarca62@gmail.com':'Martha Elena Abarca Morales',
+    'braylasky13@gmail.com':   'María Teresa Quintana Duarte',
+    'gismembre@gmail.com':     'Jissella Joammet Membreño Vivas',
+    'kybg99@gmail.com':        'Kevin Yassir Bobb García',
+    'drcuadraj@gmail.com':     'Fernando Antonio De Jesús Cuadra Jiménez',
+    'diazvivian206@gmail.com': 'Vivian Iveth Díaz',
+    'lacoreyguz@gmail.com':    'Lagree Guzman Reynoso',
+};
+
+// Estado del usuario autenticado
+let _auth = null; // { email, nombre, esDocente, residente }
+
+// ── Callback de Google Identity Services ────────────────────────────────
+function handleCredentialResponse(response) {
+    try {
+        // Decodificar payload JWT (no se verifica firma en client-side,
+        // pero el token fue emitido directamente por Google)
+        const b64 = response.credential.split('.')[1]
+                        .replace(/-/g, '+').replace(/_/g, '/');
+        const payload = JSON.parse(decodeURIComponent(
+            atob(b64).split('').map(c =>
+                '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2)
+            ).join('')
+        ));
+        const email = (payload.email || '').toLowerCase().trim();
+        const nombre = payload.name || email;
+        procesarLogin(email, nombre);
+    } catch(e) {
+        mostrarErrorLogin('Error al procesar las credenciales de Google. Intente de nuevo.');
+    }
+}
+
+// ── Procesa el login según el correo ────────────────────────────────────
+function procesarLogin(email, nombre) {
+    email = email.toLowerCase().trim();
+
+    if (email === CORREO_DOCENTE) {
+        _auth = { email, nombre, esDocente: true, residente: null };
+        sessionStorage.setItem('auth_email', email);
+        sessionStorage.setItem('auth_name', nombre);
+        activarDashboard();
+    } else if (CORREO_RESIDENTE[email]) {
+        _auth = { email, nombre, esDocente: false, residente: CORREO_RESIDENTE[email] };
+        sessionStorage.setItem('auth_email', email);
+        sessionStorage.setItem('auth_name', nombre);
+        activarDashboard();
+    } else {
+        mostrarErrorLogin('Acceso denegado: la cuenta ' + email + ' no está autorizada en este programa. Contacte al coordinador docente.');
+    }
+}
+
+// ── Muestra el dashboard y configura restricciones ──────────────────────
+function activarDashboard() {
+    // Mostrar contenido, ocultar login
+    document.getElementById('loginPanel').classList.add('hidden');
+    document.getElementById('mainContent').classList.remove('hidden');
+
+    // Mostrar info del usuario en la cabecera
+    document.getElementById('userDisplayName').textContent =
+        _auth.esDocente ? 'Dr. Doriam Perera (Docente)' : _auth.residente;
+    document.getElementById('userDisplayEmail').textContent = _auth.email;
+
+    if (!_auth.esDocente) {
+        // ── RESIDENTE: bloquear selectores a su propio nombre ──────────
+
+        // Selector "Notas Acumuladas"
+        const selRes = document.getElementById('selResidente');
+        if (selRes) {
+            selRes.value = _auth.residente;
+            selRes.disabled = true;
+            selRes.style.cssText = 'width:100%;padding:10px 12px;background:#f1f5f9;border:1px solid #e2e8f0;border-radius:12px;font-size:14px;cursor:not-allowed;color:#334155;appearance:none;outline:none;';
+        }
+
+        // Ocultar el modo "Por año" en Actividades Pendientes
+        const selModo = document.getElementById('selModoVista');
+        if (selModo) {
+            // Eliminar la opción "Por año"
+            Array.from(selModo.options).forEach(opt => {
+                if (opt.value === 'anio') opt.remove();
+            });
+            selModo.value = 'residente';
+            selModo.disabled = true;
+            selModo.style.cssText = 'width:100%;padding:10px 12px;background:#f1f5f9;border:1px solid #e2e8f0;border-radius:12px;font-size:14px;cursor:not-allowed;color:#334155;appearance:none;outline:none;';
+        }
+
+        // Selector "Actividades Pendientes" — residente
+        const selPend = document.getElementById('selPendResidente');
+        if (selPend) {
+            selPend.value = _auth.residente;
+            selPend.disabled = true;
+            selPend.style.cssText = 'width:100%;padding:10px 12px;background:#f1f5f9;border:1px solid #e2e8f0;border-radius:12px;font-size:14px;cursor:not-allowed;color:#334155;appearance:none;outline:none;';
+        }
+
+        // Ocultar contenedor de filtro por año
+        const contAnio = document.getElementById('contenedorFiltroAnio');
+        if (contAnio) contAnio.classList.add('hidden');
+
+        // Filtro de clases programadas: pre-seleccionar el año del residente
+        const anioResidente = RESIDENTE_ANIO[_auth.residente];
+        if (anioResidente) {
+            const filtroAnioEl = document.getElementById('filtroClaseAnio');
+            if (filtroAnioEl) {
+                filtroAnioEl.value = anioResidente;
+                filtroAnioEl.disabled = true;
+                renderClases();
+            }
+        }
+    }
+}
+
+// ── Error en login ───────────────────────────────────────────────────────
+function mostrarErrorLogin(msg) {
+    const el = document.getElementById('loginError');
+    if (el) { el.textContent = msg; el.classList.remove('hidden'); }
+}
+
+// ── Cerrar sesión ────────────────────────────────────────────────────────
+function cerrarSesion() {
+    sessionStorage.removeItem('auth_email');
+    sessionStorage.removeItem('auth_name');
+    _auth = null;
+    if (window.google && google.accounts && google.accounts.id) {
+        google.accounts.id.disableAutoSelect();
+    }
+    location.reload();
+}
+
+// ── Restaurar sesión desde sessionStorage (recarga de página) ───────────
+(function restaurarSesion() {
+    const email = sessionStorage.getItem('auth_email');
+    const nombre = sessionStorage.getItem('auth_name');
+    if (email) procesarLogin(email, nombre || email);
+})();
+
+// ═══════════════════════════════════════════════════════════════════════
 const URL_SCRIPT = "https://script.google.com/macros/s/AKfycbzwxFznLdmraLeYOP3VxEGm53p6MZLmYWt5AyjJ72j-vSUkhkTBDWprNCtK1yfm82m_/exec";
 
 // ── Caché de temas manuales (sincronizado con Google Sheets) ──
@@ -442,16 +645,18 @@ const CLASES = [
     { f:"25/02/2027", tema:"Revisión de un tema y artículos científicos",                           anio:"IV",  dr:"Dra. Blandón" },
     { f:"04/03/2027", tema:"Revisión de un tema y artículos científicos",                           anio:"IV",  dr:"Dr. Rayo" },
     // ── V Año ──────────────────────────────────────────────
-    { f:"29/05/2026", tema:"Presentación de caso clínico",                                          anio:"V",   dr:"Dra. Membreño" },
-    { f:"12/06/2026", tema:"Manejo microquirúrgico y endovascular de MAV",                          anio:"V",   dr:"Dra. Abarca" },
-    { f:"19/06/2026", tema:"Investigación: variable de respuesta",                                  anio:"V",   dr:"Dra. Abarca" },
-    { f:"26/06/2026", tema:"Manejo microquirúrgico de aneurismas de carótida interna",              anio:"V",   dr:"Dra. Membreño" },
-    { f:"02/07/2026", tema:"Revisión de un tema y artículos científicos",                           anio:"V",   dr:"Dra. Abarca" },
-    { f:"09/07/2026", tema:"Investigación: población de estudio",                                   anio:"V",   dr:"Dra. Membreño" },
-    { f:"17/07/2026", tema:"Revisión de un tema y artículos científicos",                           anio:"V",   dr:"Dra. Membreño" },
-    { f:"24/07/2026", tema:"Manejo microquirúrgico de aneurismas de arteria comunicante anterior",  anio:"V",   dr:"Dra. Abarca" },
-    { f:"07/08/2026", tema:"Manejo microquirúrgico de aneurismas de arteria cerebral media",        anio:"V",   dr:"Dra. Membreño" },
-    { f:"04/09/2026", tema:"Endoscopia ventricular",                                                anio:"V",   dr:"Dra. Abarca" },
+    { f:"29/05/2026", tema:"Presentación de caso clínico",                                                                                                                                                          anio:"V",   dr:"Dra. Membreño" },
+    { f:"05/06/2026", tema:"Malformaciones arteriovenosas: Principios, fisiología, anatomía, epidemiología, localización, criterios quirúrgicos/endovasculares, criterios para tratamiento",                        anio:"V",   dr:"Dra. Abarca" },
+    { f:"12/06/2026", tema:"Malformaciones arteriovenosas: manejo microquirúrgico",                                                                                                                                  anio:"V",   dr:"Dra. Abarca" },
+    { f:"19/06/2026", tema:"Malformaciones arteriovenosas: manejo endovascular",                                                                                                                                     anio:"V",   dr:"Dra. Abarca" },
+    { f:"26/06/2026", tema:"Investigación: variable de respuesta",                                                                                                                                                   anio:"V",   dr:"Dra. Abarca" },
+    { f:"03/07/2026", tema:"Aneurismas cerebrales: Generalidades, clasificación, criterios quirúrgicos, conservador, endovasculares, aneurismas tratados, cuando volver a tratarlos, complicaciones, aneurismas rotos, no rotos", anio:"V",   dr:"Dra. Membreño" },
+    { f:"10/07/2026", tema:"Aneurismas cerebrales: Manejo quirúrgico para ACI, AcomA, ACM",                                                                                                                         anio:"V",   dr:"Dra. Abarca" },
+    { f:"17/07/2026", tema:"Aneurismas cerebrales: Manejo endovascular para ACI, AcomA, ACM",                                                                                                                       anio:"V",   dr:"Dra. Membreño" },
+    { f:"24/07/2026", tema:"Revisión de un tema y artículos científicos",                                                                                                                                            anio:"V",   dr:"Dra. Abarca" },
+    { f:"31/07/2026", tema:"Investigación: población de estudio",                                                                                                                                                    anio:"V",   dr:"Dra. Membreño" },
+    { f:"07/08/2026", tema:"Revisión de un tema y artículos científicos",                                                                                                                                            anio:"V",   dr:"Dra. Membreño" },
+    { f:"04/09/2026", tema:"Endoscopia ventricular",                                                                                                                                                                 anio:"V",   dr:"Dra. Abarca" },
     { f:"18/09/2026", tema:"Craneosinostosis no sindrómica",                                        anio:"V",   dr:"Dra. Membreño" },
     { f:"25/09/2026", tema:"Presentación de caso clínico",                                          anio:"V",   dr:"Dra. Abarca" },
     { f:"02/10/2026", tema:"Craneosinostosis sindrómica",                                           anio:"V",   dr:"Dra. Membreño" },
@@ -547,7 +752,8 @@ function guardarTemaManual(key, value, fecha, anio, tipo) {
 }
 
 // Guarda desde el botón explícito con feedback visual
-function guardarTemaDesdeBoton(inputId, key, fecha, anio, tipo, estadoId) {
+// containerIdx: índice de la tarjeta para actualizar el DOM al estado "guardado"
+function guardarTemaDesdeBoton(inputId, key, fecha, anio, tipo, estadoId, containerIdx) {
     const input    = document.getElementById(inputId);
     const estadoEl = document.getElementById(estadoId);
     if (!input) return;
@@ -557,21 +763,69 @@ function guardarTemaDesdeBoton(inputId, key, fecha, anio, tipo, estadoId) {
     if (v) { localStorage.setItem(key, v); _temasCache[key] = v; }
     else    { localStorage.removeItem(key); delete _temasCache[key]; }
 
-    estadoEl.textContent = 'Guardando…';
-    estadoEl.style.color = '#6366f1';
+    if (estadoEl) { estadoEl.textContent = 'Guardando…'; estadoEl.style.color = '#6366f1'; }
 
     // Envía a Google Sheets → hoja Evaluaciones, pestaña Tema_de_residentes
     const params = new URLSearchParams({ action:'saveTema', hoja:'Tema_de_residentes', fecha, anio, tipo, tema: v });
     fetch(`${URL_SCRIPT}?${params.toString()}`, { mode:'no-cors' })
         .then(() => {
-            estadoEl.textContent = '✓ Guardado en Sheets';
-            estadoEl.style.color = '#10b981';
-            setTimeout(() => { estadoEl.textContent = ''; }, 3500);
+            if (v && containerIdx !== undefined) {
+                // Cambiar al estado "guardado": ocultar input, mostrar texto en negrita + lápiz
+                const container = document.getElementById('tema-container-' + containerIdx);
+                if (container) {
+                    const bg     = container.dataset.bg     || '#f1f5f9';
+                    const text   = container.dataset.text   || '#334155';
+                    const border = container.dataset.border || '#e2e8f0';
+                    container.innerHTML = `
+                        <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:4px;">
+                            <div style="flex:1;min-width:0;">
+                                <div style="font-size:9px;color:${text};font-weight:700;text-transform:uppercase;letter-spacing:.05em;margin-bottom:3px;">Tema guardado</div>
+                                <p style="font-size:11px;font-weight:800;color:${text};line-height:1.4;">${v.replace(/</g,'&lt;').replace(/>/g,'&gt;')}</p>
+                            </div>
+                            <button onclick="editarTema(${containerIdx})" title="Editar tema"
+                                style="flex-shrink:0;background:${bg};border:1.5px solid ${border};border-radius:6px;padding:4px 8px;cursor:pointer;font-size:13px;line-height:1;margin-left:4px;">
+                                ✏️
+                            </button>
+                        </div>`;
+                }
+            } else if (estadoEl) {
+                estadoEl.textContent = '✓ Guardado';
+                estadoEl.style.color = '#10b981';
+                setTimeout(() => { estadoEl.textContent = ''; }, 3000);
+            }
         })
         .catch(() => {
-            estadoEl.textContent = '⚠️ Error de red';
-            estadoEl.style.color = '#ef4444';
+            if (estadoEl) { estadoEl.textContent = '⚠️ Error de red'; estadoEl.style.color = '#ef4444'; }
         });
+}
+
+// Vuelve al modo edición desde el estado "guardado" (ícono lápiz)
+function editarTema(containerIdx) {
+    const container = document.getElementById('tema-container-' + containerIdx);
+    if (!container) return;
+    const key    = container.dataset.key;
+    const fecha  = container.dataset.fecha;
+    const anio   = container.dataset.anio;
+    const tipo   = container.dataset.tipo;
+    const bg     = container.dataset.bg     || '#f1f5f9';
+    const text   = container.dataset.text   || '#334155';
+    const border = container.dataset.border || '#e2e8f0';
+    const currentVal = (_temasCache[key] || localStorage.getItem(key) || '').replace(/"/g, '&quot;');
+
+    container.innerHTML = `
+        <div style="font-size:10px;color:#6366f1;font-weight:700;margin-bottom:4px;">✏️ Tema a desarrollar:</div>
+        <input type="text" id="inp-${containerIdx}" placeholder="Escribe el tema específico…" value="${currentVal}"
+            style="width:100%;font-size:11px;padding:5px 8px;border:1.5px solid #c7d2fe;border-radius:7px;outline:none;background:#fff;color:#334155;box-sizing:border-box;margin-bottom:5px;">
+        <div style="display:flex;align-items:center;gap:6px;">
+            <button onclick="guardarTemaDesdeBoton('inp-${containerIdx}','${key}','${fecha}','${anio}','${tipo}','estado-${containerIdx}',${containerIdx})"
+                style="font-size:10px;font-weight:700;background:#4f46e5;color:#fff;border:none;border-radius:6px;padding:4px 11px;cursor:pointer;flex-shrink:0;letter-spacing:.02em;">
+                💾 Guardar
+            </button>
+            <span id="estado-${containerIdx}" style="font-size:10px;color:#64748b;font-weight:600;"></span>
+        </div>`;
+
+    const inp = document.getElementById('inp-' + containerIdx);
+    if (inp) { inp.focus(); inp.select(); }
 }
 
 function scrollClaseCarousel(dir) {
@@ -635,18 +889,37 @@ function renderClases() {
             <div style="font-size:10px;font-weight:800;color:${col.text};text-transform:uppercase;letter-spacing:.06em;margin-bottom:5px;${col.badge}padding:2px 7px;border-radius:6px;display:inline-block;">${c.anio} Año</div>
             <p style="font-size:12px;font-weight:600;color:#334155;line-height:1.4;margin-top:5px;margin-bottom:4px;">${c.tema}</p>
             ${c.dr ? `<p style="font-size:10px;color:#6366f1;font-weight:600;margin-bottom:${editable?'6px':'0'};display:flex;align-items:center;gap:3px;"><span style="opacity:.7;">👨‍⚕️</span>${c.dr}</p>` : ''}
-            ${editable ? `<div style="margin-top:6px;">
-                <div style="font-size:10px;color:#6366f1;font-weight:700;margin-bottom:4px;">✏️ Tema a desarrollar:</div>
-                <input type="text" id="inp-${i}" placeholder="Escribe el tema específico…" value="${guardado.replace(/"/g,'&quot;')}"
-                    style="width:100%;font-size:11px;padding:5px 8px;border:1.5px solid #c7d2fe;border-radius:7px;outline:none;background:#fff;color:#334155;box-sizing:border-box;margin-bottom:5px;">
-                <div style="display:flex;align-items:center;gap:6px;">
-                    <button
-                        onclick="guardarTemaDesdeBoton('inp-${i}','${localKey}','${c.f}','${c.anio}','${c.tema.toLowerCase().includes('caso') ? 'caso' : 'revision'}','estado-${i}')"
-                        style="font-size:10px;font-weight:700;background:#4f46e5;color:#fff;border:none;border-radius:6px;padding:4px 11px;cursor:pointer;flex-shrink:0;letter-spacing:.02em;">
-                        💾 Guardar
-                    </button>
-                    <span id="estado-${i}" style="font-size:10px;color:#64748b;font-weight:600;"></span>
-                </div>
+            ${editable ? `<div id="tema-container-${i}"
+                data-key="${localKey}"
+                data-fecha="${c.f}"
+                data-anio="${c.anio}"
+                data-tipo="${c.tema.toLowerCase().includes('caso') ? 'caso' : 'revision'}"
+                data-bg="${col.bg}"
+                data-text="${col.text}"
+                data-border="${col.border}"
+                style="margin-top:6px;padding-top:6px;border-top:1px solid ${col.border};">
+                ${guardado
+                    ? `<div style="display:flex;align-items:flex-start;justify-content:space-between;gap:4px;">
+                           <div style="flex:1;min-width:0;">
+                               <div style="font-size:9px;color:${col.text};font-weight:700;text-transform:uppercase;letter-spacing:.05em;margin-bottom:3px;">Tema guardado</div>
+                               <p style="font-size:11px;font-weight:800;color:${col.text};line-height:1.4;">${guardado.replace(/</g,'&lt;').replace(/>/g,'&gt;')}</p>
+                           </div>
+                           <button onclick="editarTema(${i})" title="Editar tema"
+                               style="flex-shrink:0;background:${col.bg};border:1.5px solid ${col.border};border-radius:6px;padding:4px 8px;cursor:pointer;font-size:13px;line-height:1;margin-left:4px;">
+                               ✏️
+                           </button>
+                       </div>`
+                    : `<div style="font-size:10px;color:#6366f1;font-weight:700;margin-bottom:4px;">✏️ Tema a desarrollar:</div>
+                       <input type="text" id="inp-${i}" placeholder="Escribe el tema específico…" value=""
+                           style="width:100%;font-size:11px;padding:5px 8px;border:1.5px solid #c7d2fe;border-radius:7px;outline:none;background:#fff;color:#334155;box-sizing:border-box;margin-bottom:5px;">
+                       <div style="display:flex;align-items:center;gap:6px;">
+                           <button onclick="guardarTemaDesdeBoton('inp-${i}','${localKey}','${c.f}','${c.anio}','${c.tema.toLowerCase().includes('caso') ? 'caso' : 'revision'}','estado-${i}',${i})"
+                               style="font-size:10px;font-weight:700;background:#4f46e5;color:#fff;border:none;border-radius:6px;padding:4px 11px;cursor:pointer;flex-shrink:0;letter-spacing:.02em;">
+                               💾 Guardar
+                           </button>
+                           <span id="estado-${i}" style="font-size:10px;color:#64748b;font-weight:600;"></span>
+                       </div>`
+                }
             </div>` : ''}
         </div>`;
     }).join('');
@@ -844,9 +1117,18 @@ function actualizarFiltrosPendientes() {
 let chartBarrasInst = null, chartRadarInst = null;
 
 async function cargarNotas() {
+    // Guardia de seguridad: residente solo puede ver sus propias notas
+    if (_auth && !_auth.esDocente) {
+        document.getElementById('selResidente').value = _auth.residente;
+    }
     const residente = document.getElementById('selResidente').value.trim();
     const moduloFiltro = document.getElementById('selModulo').value.trim();
     if (!residente) { mostrarMsgNotas("Por favor selecciona un residente."); return; }
+    // Verificar que un residente no intente ver notas de otro
+    if (_auth && !_auth.esDocente && residente !== _auth.residente) {
+        mostrarMsgNotas("⛔ Acceso denegado: solo puedes ver tus propias notas.");
+        return;
+    }
     mostrarMsgNotas("Cargando datos…");
     document.getElementById('secNotas').classList.add('hidden');
 
@@ -1044,6 +1326,11 @@ function renderNotas(residente, filas) {
 }
 
 async function cargarPendientes() {
+    // Guardia de seguridad: residente solo puede ver sus propias actividades
+    if (_auth && !_auth.esDocente) {
+        const selPend = document.getElementById('selPendResidente');
+        if (selPend) selPend.value = _auth.residente;
+    }
     const modo = document.getElementById('selModoVista').value;
     const sec = document.getElementById('secPendientes');
     sec.innerHTML='';
