@@ -24,7 +24,7 @@
         <p class="text-slate-600 text-sm mb-6 leading-relaxed">Inicia sesión con tu cuenta de Google institucional para acceder a tu información académica.</p>
         <!-- Botón de Google Sign-In (se renderiza automáticamente) -->
         <div id="g_id_onload"
-             data-client_id="148157700207-r8g2es764v635uckj1d1ff3dsfsdit56.apps.googleusercontent.com"
+             data-client_id="REEMPLAZA_CON_TU_GOOGLE_CLIENT_ID"
              data-callback="handleCredentialResponse"
              data-auto_select="true"
              data-cancel_on_tap_outside="false">
@@ -342,8 +342,17 @@ const CORREO_RESIDENTE = {
     'lacoreyguz@gmail.com':    'Lagree Guzman Reynoso',
 };
 
+// Supervisores con acceso parcial: correo → lista de residentes que pueden ver
+const CORREO_SUPERVISOR = {
+    'pereravaldivia@gmail.com': [
+        'Fernando Antonio De Jesús Cuadra Jiménez',
+        'Angel Benigno Rayo Bravo',
+    ],
+};
+
 // Estado del usuario autenticado
-let _auth = null; // { email, nombre, esDocente, residente }
+// Roles: esDocente (acceso total) | esSupervisor (acceso parcial) | residente (solo el propio)
+let _auth = null;
 
 // ── Callback de Google Identity Services ────────────────────────────────
 function handleCredentialResponse(response) {
@@ -370,12 +379,17 @@ function procesarLogin(email, nombre) {
     email = email.toLowerCase().trim();
 
     if (email === CORREO_DOCENTE) {
-        _auth = { email, nombre, esDocente: true, residente: null };
+        _auth = { email, nombre, esDocente: true, esSupervisor: false, residente: null, residentesAutorizados: null };
+        sessionStorage.setItem('auth_email', email);
+        sessionStorage.setItem('auth_name', nombre);
+        activarDashboard();
+    } else if (CORREO_SUPERVISOR[email]) {
+        _auth = { email, nombre, esDocente: false, esSupervisor: true, residente: null, residentesAutorizados: CORREO_SUPERVISOR[email] };
         sessionStorage.setItem('auth_email', email);
         sessionStorage.setItem('auth_name', nombre);
         activarDashboard();
     } else if (CORREO_RESIDENTE[email]) {
-        _auth = { email, nombre, esDocente: false, residente: CORREO_RESIDENTE[email] };
+        _auth = { email, nombre, esDocente: false, esSupervisor: false, residente: CORREO_RESIDENTE[email], residentesAutorizados: null };
         sessionStorage.setItem('auth_email', email);
         sessionStorage.setItem('auth_name', nombre);
         activarDashboard();
@@ -391,11 +405,48 @@ function activarDashboard() {
     document.getElementById('mainContent').classList.remove('hidden');
 
     // Mostrar info del usuario en la cabecera
-    document.getElementById('userDisplayName').textContent =
-        _auth.esDocente ? 'Dr. Doriam Perera (Docente)' : _auth.residente;
+    let displayName;
+    if (_auth.esDocente)       displayName = 'Dr. Doriam Perera (Docente)';
+    else if (_auth.esSupervisor) displayName = 'Dr. Doriam Perera (Supervisor)';
+    else                        displayName = _auth.residente;
+    document.getElementById('userDisplayName').textContent  = displayName;
     document.getElementById('userDisplayEmail').textContent = _auth.email;
 
-    if (!_auth.esDocente) {
+    if (_auth.esSupervisor) {
+        // ── SUPERVISOR: filtrar selector solo a los residentes autorizados ──
+        const autorizados = _auth.residentesAutorizados || [];
+
+        // Selector "Notas Acumuladas": dejar solo las opciones autorizadas
+        const selRes = document.getElementById('selResidente');
+        if (selRes) {
+            // Reconstruir el select con solo las opciones permitidas
+            const opcionesPermitidas = Array.from(selRes.options).filter(
+                opt => opt.value === '' || autorizados.includes(opt.value)
+            );
+            selRes.innerHTML = '';
+            opcionesPermitidas.forEach(opt => selRes.appendChild(opt));
+        }
+
+        // Selector "Actividades Pendientes": solo residentes autorizados
+        const selPend = document.getElementById('selPendResidente');
+        if (selPend) {
+            const opcionesPermitidas = Array.from(selPend.options).filter(
+                opt => opt.value === '' || autorizados.includes(opt.value)
+            );
+            selPend.innerHTML = '';
+            opcionesPermitidas.forEach(opt => selPend.appendChild(opt));
+        }
+
+        // Ocultar filtro por año (no aplica para supervisor parcial)
+        const contAnio = document.getElementById('contenedorFiltroAnio');
+        if (contAnio) contAnio.classList.add('hidden');
+        const selModo = document.getElementById('selModoVista');
+        if (selModo) {
+            Array.from(selModo.options).forEach(opt => { if (opt.value === 'anio') opt.remove(); });
+            selModo.value = 'residente';
+        }
+
+    } else if (!_auth.esDocente) {
         // ── RESIDENTE: bloquear selectores a su propio nombre ──────────
 
         // Selector "Notas Acumuladas"
@@ -1117,16 +1168,21 @@ function actualizarFiltrosPendientes() {
 let chartBarrasInst = null, chartRadarInst = null;
 
 async function cargarNotas() {
-    // Guardia de seguridad: residente solo puede ver sus propias notas
-    if (_auth && !_auth.esDocente) {
+    // Guardia de seguridad según rol
+    if (_auth && !_auth.esDocente && !_auth.esSupervisor) {
         document.getElementById('selResidente').value = _auth.residente;
     }
     const residente = document.getElementById('selResidente').value.trim();
     const moduloFiltro = document.getElementById('selModulo').value.trim();
     if (!residente) { mostrarMsgNotas("Por favor selecciona un residente."); return; }
-    // Verificar que un residente no intente ver notas de otro
-    if (_auth && !_auth.esDocente && residente !== _auth.residente) {
+    // Residente solo puede ver sus propias notas
+    if (_auth && !_auth.esDocente && !_auth.esSupervisor && residente !== _auth.residente) {
         mostrarMsgNotas("⛔ Acceso denegado: solo puedes ver tus propias notas.");
+        return;
+    }
+    // Supervisor solo puede ver los residentes autorizados
+    if (_auth && _auth.esSupervisor && !(_auth.residentesAutorizados || []).includes(residente)) {
+        mostrarMsgNotas("⛔ Acceso denegado: no tienes autorización para ver las notas de este residente.");
         return;
     }
     mostrarMsgNotas("Cargando datos…");
